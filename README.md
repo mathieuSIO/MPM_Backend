@@ -58,7 +58,7 @@ Objectif :
 👉 garantir une cohérence business
 
 
-### 4. Gestion des devis (quotes)
+### 4. Gestion des devis (deviss)
 
 Le serveur permettra de :
 
