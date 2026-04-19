@@ -1,5 +1,4 @@
-//A retravailler pour le calcul du prix lorsque j'aurais plusieurs produits 
-export type ProductType = "tshirt";
+export type ProductType = 'cap' | 'other' | 'polo' | 'sweatshirt' | 'tshirt';
 
 export enum Color {
   BLACK = "black",
