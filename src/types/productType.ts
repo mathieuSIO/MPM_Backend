@@ -7,6 +7,6 @@ export enum Color {
 
 export type Product = {
   type: ProductType;
-  color: Color;
   basePrice: number;
+  color: Color
 };

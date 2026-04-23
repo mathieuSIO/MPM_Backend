@@ -1,7 +1,7 @@
-import type { Product } from "./productType.js"
+import type { Color, Product } from "./productType.js"
 
 export type DevisLine = {
     product: Product;
     quantity: number;
-    lineTotal: number;
+    lineTotalPrice: number;
 }
