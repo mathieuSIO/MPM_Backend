@@ -13,6 +13,8 @@ export async function createDevis(devisInput: CreateDevisInput): Promise<Devis> 
         totalPrice
     };
 
+    console.log("voici le nouveau devis : ", devis)
+
     //Code qui insere mon devis en base
 
     //retour de ma requete
@@ -55,7 +57,6 @@ function getBasePriceByProductType(productType: ProductType): number {
             throw new Error(`Le type de produit est inconnu: ${productType}`);
     }
 }
-
 
 const PRODUCT_BASE_PRICES = {
     tshirt: 10,
