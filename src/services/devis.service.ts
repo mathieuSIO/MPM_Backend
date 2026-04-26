@@ -1,7 +1,7 @@
-import type { CreateDevisInput, CreateDevisLineInput } from "../types/createDevisInputType.js";
-import type { DevisLine } from "../types/devisLineType.js";
-import type { Devis } from "../types/devisType.js";
-import type { ProductType } from "../types/productType.js";
+import type { CreateDevisInput, CreateDevisLineInput } from "../types/create-devis-input.type.js";
+import type { DevisLine } from "../types/devis-line.type.js";
+import type { Devis } from "../types/devis.type.js";
+import type { ProductType } from "../types/product.type.js";
 
 export async function createDevis(devisInput: CreateDevisInput): Promise<Devis> {
 

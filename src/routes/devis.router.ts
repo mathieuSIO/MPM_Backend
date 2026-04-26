@@ -1,5 +1,5 @@
 import { Router } from "express";
-import { createDevisController } from "../controllers/devisController.js";
+import { createDevisController } from "../controllers/devis.controller.js";
 
 const router = Router();
 

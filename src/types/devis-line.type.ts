@@ -1,4 +1,4 @@
-import type { Color, Product } from "./productType.js"
+import type { Color, Product } from "./product.type.js"
 
 export type DevisLine = {
     product: Product;

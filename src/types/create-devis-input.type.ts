@@ -1,4 +1,4 @@
-import type { Color, ProductType } from "./productType.js";
+import type { Color, ProductType } from "./product.type.js";
 
 export type CreateDevisLineInput = {
     productType: ProductType;
