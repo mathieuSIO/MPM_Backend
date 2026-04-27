@@ -1,9 +1,7 @@
 import express from "express";
 import cors from "cors";
 import devisRouter from "./routes/devis.router.js";
-import { db } from "./db/connection.js";
 
-console.log("DB initialized");
 const app = express();
 app.use(express.json());
 
