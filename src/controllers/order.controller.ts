@@ -14,6 +14,7 @@ export class OrderController {
             });
 
         } catch (err) {
+            console.log("Error creating order:", err);
             res.status(500).json({
                 success: false,
                 message: "Failed to create order"

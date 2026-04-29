@@ -62,6 +62,7 @@ export class OrderRepository {
             return { id: order.id };
 
         } catch (err) {
+            console.log("Error in createOrderWithItems transaction:", err);
             await client.query("ROLLBACK");
             throw err;
         } finally {
