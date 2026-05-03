@@ -48,3 +48,13 @@ export type OrderItemCustomization = {
     rotation: number;
   }[];
 };
+
+export type OrderSummaryRow = {
+  id: number;
+  status: string;
+  total_price_cents: number;
+  customer_first_name: string;
+  customer_last_name: string;
+  customer_email: string;
+  created_at: Date;
+};

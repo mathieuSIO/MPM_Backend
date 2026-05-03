@@ -1,6 +1,6 @@
 import type { PoolClient } from "pg";
 import { db } from "../db/connection.js";
-import type { CreateOrderRepositoryInput, CreateOrderRepositoryOutput, CreateOrderWithItemsInput } from "../types/order.repository.types.js";
+import type { CreateOrderRepositoryInput, CreateOrderRepositoryOutput, CreateOrderWithItemsInput, OrderSummaryRow } from "../types/order.repository.types.js";
 
 export class OrderRepository {
 
@@ -70,6 +70,34 @@ export class OrderRepository {
         }
     }
 
+    async getOrdersByUserId(userId: number): Promise<OrderSummaryRow[]> {
+        const client = await db.connect();
+        try {
+            const result = await client.query<OrderSummaryRow>(
+                `SELECT
+                    id,
+                    status,
+                    total_price_cents,
+                    customer_first_name,
+                    customer_last_name,
+                    customer_email,
+                    created_at
+                FROM orders 
+                WHERE user_id = $1
+                `,
+                [userId]
+            );
+            return result.rows;
+        } catch (err) {
+            console.log("Error fetching orders by user ID:", err);
+            await client.query("ROLLBACK");
+            throw err;
+        } finally {
+            client.release();
+        }
+    }
+
+    //#region Private methods for request handling
     private async insertOrder(client: PoolClient, input: CreateOrderRepositoryInput): Promise<{ id: number }> {
         const orderResult = await client.query<{ id: number }>(
             `INSERT INTO orders (
@@ -106,5 +134,8 @@ export class OrderRepository {
         if (!order) throw new Error("Order creation failed");
         return order;
     }
+    //#endregion
+
+
 }
 

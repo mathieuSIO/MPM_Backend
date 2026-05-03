@@ -1,8 +1,15 @@
 import { OrderRepository } from "../repositories/order.repository.js";
-import type { CreateOrderRepositoryOutput, CreateOrderWithItemsInput } from "../types/order.repository.types.js";
+import type { CreateOrderRepositoryOutput, CreateOrderWithItemsInput, OrderSummaryRow } from "../types/order.repository.types.js";
 
 export class OrderService {
     constructor(private readonly orderRepository = new OrderRepository()) { }
+
+    async getUserOrders(userId: number): Promise<OrderSummaryRow[]> {
+        if (!Number.isInteger(userId) || userId <= 0) {
+            throw new Error("Invalid user id");
+        }
+        return this.orderRepository.getOrdersByUserId(userId);
+    }
 
     async createOrderWithItems(input: CreateOrderWithItemsInput): Promise<CreateOrderRepositoryOutput> {
         this.validateCreateOrderWithItemsInput(input);
@@ -20,6 +27,11 @@ export class OrderService {
     }
 
     private validateCreateOrderWithItemsInput(input: CreateOrderWithItemsInput): void {
+
+        if (!input.order.customerEmail) {
+            throw new Error("Customer email is required");
+        }
+        
         if (input.items.length === 0) {
             throw new Error("Cannot create an order without items");
         }
