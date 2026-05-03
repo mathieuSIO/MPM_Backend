@@ -1,5 +1,6 @@
 import { OrderRepository } from "../repositories/order.repository.js";
-import type { CreateOrderRepositoryOutput, CreateOrderWithItemsInput, OrderSummaryRow } from "../types/order.repository.types.js";
+import type { CreateOrderRepositoryOutput, OrderSummaryRow } from "../types/order.repository.types.js";
+import type { CreateOrderWithItemsServiceInput } from "../types/order.service.types.js";
 
 export class OrderService {
     constructor(private readonly orderRepository = new OrderRepository()) { }
@@ -11,7 +12,7 @@ export class OrderService {
         return this.orderRepository.getOrdersByUserId(userId);
     }
 
-    async createOrderWithItems(input: CreateOrderWithItemsInput): Promise<CreateOrderRepositoryOutput> {
+    async createOrderWithItems(input: CreateOrderWithItemsServiceInput): Promise<CreateOrderRepositoryOutput> {
         this.validateCreateOrderWithItemsInput(input);
 
         const totalPriceCents = this.calculateTotalPriceCents(input);
@@ -26,12 +27,12 @@ export class OrderService {
         });
     }
 
-    private validateCreateOrderWithItemsInput(input: CreateOrderWithItemsInput): void {
+    private validateCreateOrderWithItemsInput(input: CreateOrderWithItemsServiceInput): void {
 
         if (!input.order.customerEmail) {
             throw new Error("Customer email is required");
         }
-        
+
         if (input.items.length === 0) {
             throw new Error("Cannot create an order without items");
         }
@@ -47,7 +48,7 @@ export class OrderService {
         }
     }
 
-    private calculateTotalPriceCents(input: CreateOrderWithItemsInput): number {
+    private calculateTotalPriceCents(input: CreateOrderWithItemsServiceInput): number {
         return input.items.reduce((total, item) => {
             return total + item.quantity * item.unitPriceCents;
         }, 0);
