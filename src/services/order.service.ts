@@ -1,5 +1,5 @@
 import { OrderRepository } from "../repositories/order.repository.js";
-import type { CreateOrderRepositoryOutput, OrderSummaryRow } from "../types/order.repository.types.js";
+import type { CreateOrderRepositoryOutput, OrderDetailsRow, OrderSummaryRow } from "../types/order.repository.types.js";
 import type { CreateOrderWithItemsServiceInput } from "../types/order.service.types.js";
 
 export class OrderService {
@@ -25,6 +25,23 @@ export class OrderService {
             },
             items: input.items,
         });
+    }
+
+    async getUserOrderDetails(
+        orderId: number,
+        userId: number
+    ): Promise<OrderDetailsRow> {
+        if (!Number.isInteger(orderId) || orderId <= 0) {
+            throw new Error("Invalid order id");
+        }
+
+        const order = await this.orderRepository.findOrderDetailsById(orderId, userId);
+
+        if (!order) {
+            throw new Error("Order not found");
+        }
+
+        return order;
     }
 
     private validateCreateOrderWithItemsInput(input: CreateOrderWithItemsServiceInput): void {

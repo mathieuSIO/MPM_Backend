@@ -1,6 +1,6 @@
 import type { PoolClient } from "pg";
 import { db } from "../db/connection.js";
-import type { CreateOrderRepositoryInput, CreateOrderRepositoryOutput, CreateOrderWithItemsInput, OrderSummaryRow } from "../types/order.repository.types.js";
+import type { CreateOrderRepositoryInput, CreateOrderRepositoryOutput, CreateOrderWithItemsInput, OrderDetailsRow, OrderItemDetailsRow, OrderSummaryRow } from "../types/order.repository.types.js";
 
 export class OrderRepository {
 
@@ -95,6 +95,57 @@ export class OrderRepository {
         } finally {
             client.release();
         }
+    }
+
+    async findOrderDetailsById(orderId: number, userId: number): Promise<OrderDetailsRow | null> {
+        const orderResult = await db.query<Omit<OrderDetailsRow, "items">>(
+            `
+            SELECT
+                id,
+                status,
+                total_price_cents,
+                customer_first_name,
+                customer_last_name,
+                customer_email,
+                customer_phone,
+                shipping_address_line1,
+                shipping_address_line2,
+                shipping_postal_code,
+                shipping_city,
+                shipping_country,
+                created_at
+            FROM orders
+            WHERE id = $1 AND user_id = $2
+            `,
+            [orderId, userId]
+        );
+
+        const order = orderResult.rows[0];
+
+        if (!order) return null;
+
+        const itemsResult = await db.query<OrderItemDetailsRow>(
+            `
+            SELECT
+                id,
+                product_id,
+                product_name,
+                quantity,
+                unit_price_cents,
+                total_price_cents,
+                customization,
+                final_preview_url
+            FROM order_items
+            WHERE order_id = $1
+            ORDER BY id ASC
+            `,
+            [orderId]
+        );
+
+        return {
+            ...order,
+            items: itemsResult.rows,
+        };
     }
 
     //#region Private methods for request handling

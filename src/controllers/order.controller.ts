@@ -42,4 +42,25 @@ export class OrderController {
         }
     };
 
+    getMyOrderDetails = async (req: Request, res: Response): Promise<void> => {
+        try {
+            const userId = 1; // TODO auth
+            const orderId = Number(req.params.orderId);
+
+            const order = await this.orderService.getUserOrderDetails(orderId, userId);
+
+            res.status(200).json({
+                success: true,
+                data: order,
+            });
+        } catch (err) {
+            console.error("Error in getMyOrderDetails:", err);
+
+            res.status(404).json({
+                success: false,
+                message: "Order not found",
+            });
+        }
+    };
+
 }
