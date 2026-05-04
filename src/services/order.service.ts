@@ -27,10 +27,7 @@ export class OrderService {
         });
     }
 
-    async getUserOrderDetails(
-        orderId: number,
-        userId: number
-    ): Promise<OrderDetailsRow> {
+    async getUserOrderDetails(orderId: number, userId: number): Promise<OrderDetailsRow> {
         if (!Number.isInteger(orderId) || orderId <= 0) {
             throw new Error("Invalid order id");
         }

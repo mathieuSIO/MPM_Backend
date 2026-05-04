@@ -3,7 +3,7 @@ import cors from "cors";
 import devisRouter from "./routes/devis.router.js";
 import orderRouter from "./routes/order.router.js";
 import meRouter from "./routes/me.router.js";
-
+import { errorHandler } from "./middleware/error-handler.middleware.js";
 
 const app = express();
 app.use(express.json());
@@ -16,7 +16,6 @@ app.use("/api/devis", devisRouter);
 app.use("/api/orders", orderRouter);
 app.use("/api/me", meRouter);
 
-
 //Check if server life is good
 app.get('/api/health', (_req, res) => {
     res.status(200).json({
@@ -24,5 +23,7 @@ app.get('/api/health', (_req, res) => {
         message: "API is running",
     })
 })
+
+app.use(errorHandler);
 
 export default app;
