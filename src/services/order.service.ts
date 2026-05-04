@@ -1,3 +1,4 @@
+import { BadRequestError, NotFoundError } from "../errors/http-errors.js";
 import { OrderRepository } from "../repositories/order.repository.js";
 import type { CreateOrderRepositoryOutput, OrderDetailsRow, OrderSummaryRow } from "../types/order.repository.types.js";
 import type { CreateOrderWithItemsServiceInput } from "../types/order.service.types.js";
@@ -7,7 +8,7 @@ export class OrderService {
 
     async getUserOrders(userId: number): Promise<OrderSummaryRow[]> {
         if (!Number.isInteger(userId) || userId <= 0) {
-            throw new Error("Invalid user id");
+            throw new BadRequestError("Invalid user id");
         }
         return this.orderRepository.getOrdersByUserId(userId);
     }
@@ -29,13 +30,13 @@ export class OrderService {
 
     async getUserOrderDetails(orderId: number, userId: number): Promise<OrderDetailsRow> {
         if (!Number.isInteger(orderId) || orderId <= 0) {
-            throw new Error("Invalid order id");
+            throw new BadRequestError("Invalid order id");
         }
 
         const order = await this.orderRepository.findOrderDetailsById(orderId, userId);
 
         if (!order) {
-            throw new Error("Order not found");
+            throw new NotFoundError("Order not found");
         }
 
         return order;
@@ -44,20 +45,20 @@ export class OrderService {
     private validateCreateOrderWithItemsInput(input: CreateOrderWithItemsServiceInput): void {
 
         if (!input.order.customerEmail) {
-            throw new Error("Customer email is required");
+            throw new BadRequestError("Customer email is required");
         }
 
         if (input.items.length === 0) {
-            throw new Error("Cannot create an order without items");
+            throw new BadRequestError("Cannot create an order without items");
         }
 
         for (const item of input.items) {
             if (item.quantity <= 0) {
-                throw new Error("Item quantity must be greater than 0");
+                throw new BadRequestError("Item quantity must be greater than 0");
             }
 
             if (item.unitPriceCents <= 0) {
-                throw new Error("Item unit price must be greater than 0");
+                throw new BadRequestError("Item unit price must be greater than 0");
             }
         }
     }
