@@ -10,7 +10,7 @@ export class OrderService {
         if (!Number.isInteger(userId) || userId <= 0) {
             throw new BadRequestError("Invalid user id");
         }
-        return this.orderRepository.getOrdersByUserId(userId);
+        return this.orderRepository.findOrdersByUserId(userId);
     }
 
     async createOrderWithItems(input: CreateOrderWithItemsServiceInput): Promise<CreateOrderRepositoryOutput> {

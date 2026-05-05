@@ -70,7 +70,7 @@ export class OrderRepository {
         }
     }
 
-    async getOrdersByUserId(userId: number): Promise<OrderSummaryRow[]> {
+    async findOrdersByUserId(userId: number): Promise<OrderSummaryRow[]> {
         const client = await db.connect();
         try {
             const result = await client.query<OrderSummaryRow>(
