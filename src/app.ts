@@ -3,6 +3,7 @@ import cors from "cors";
 import devisRouter from "./routes/devis.router.js";
 import orderRouter from "./routes/order.router.js";
 import meRouter from "./routes/me.router.js";
+import authRouter from "./routes/auth.router.js";
 import { errorHandler } from "./middleware/error-handler.middleware.js";
 
 const app = express();
@@ -15,6 +16,7 @@ app.use(cors({
 app.use("/api/devis", devisRouter);
 app.use("/api/orders", orderRouter);
 app.use("/api/me", meRouter);
+app.use("/api/auth", authRouter);
 
 //Check if server life is good
 app.get('/api/health', (_req, res) => {
