@@ -16,8 +16,7 @@ export class OrderController {
     };
 
     getMyOrders = async (req: Request, res: Response): Promise<void> => {
-        const userId = 1; // TODO: remplacer par req.user.id quand l'auth sera en place
-
+        const userId = req.user!.userId; 
         const orders = await this.orderService.getUserOrders(userId);
 
         res.status(200).json({
@@ -27,7 +26,7 @@ export class OrderController {
     };
 
     getMyOrderDetails = async (req: Request, res: Response): Promise<void> => {
-        const userId = 1; // TODO auth
+        const userId = req.user!.userId;
         const orderId = Number(req.params.orderId);
 
         const order = await this.orderService.getUserOrderDetails(orderId, userId);
