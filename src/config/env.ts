@@ -20,4 +20,6 @@ export const env = {
   jwtExpiresIn: (process.env.JWT_EXPIRES_IN ?? "7d") as JwtExpiresIn,
 
   frontendOrigin: process.env.FRONTEND_ORIGIN || "http://localhost:5173",
+
+  apiPublicUrl: process.env.API_PUBLIC_URL || "http://localhost:4000",
 };
