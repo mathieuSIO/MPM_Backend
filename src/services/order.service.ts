@@ -88,18 +88,26 @@ export class OrderService {
         return order;
     }
 
-    async updateOrderStatus(orderId: number, status: OrderStatus): Promise<void> {
+    async updateOrderStatus(orderId: number, status: OrderStatus): Promise<OrderDetailsRow> {
         if (!Number.isInteger(orderId) || orderId <= 0) {
             throw new BadRequestError("Invalid order id");
         }
 
-        const order = await this.orderRepository.findAdminOrderDetailsById(orderId);
+        const existingOrder = await this.orderRepository.findAdminOrderDetailsById(orderId);
 
-        if (!order) {
+        if (!existingOrder) {
             throw new NotFoundError("Order not found");
         }
 
         await this.orderRepository.updateOrderStatus(orderId, status);
+
+        const updatedOrder = await this.orderRepository.findAdminOrderDetailsById(orderId);
+
+        if (!updatedOrder) {
+            throw new NotFoundError("Order not found after update");
+        }
+
+        return updatedOrder;
     }
 
 }

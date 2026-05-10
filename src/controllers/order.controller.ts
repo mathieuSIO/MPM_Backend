@@ -68,11 +68,11 @@ export class OrderController {
         const orderId = Number(req.params.orderId);
         const status = req.body.status as OrderStatus;
 
-        await this.orderService.updateOrderStatus(orderId, status);
+        const order = await this.orderService.updateOrderStatus(orderId, status);
 
         res.status(200).json({
             success: true,
-            message: "Order status updated successfully",
+            data: order,
         });
     };
 
