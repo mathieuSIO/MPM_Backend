@@ -1,3 +1,5 @@
+import type { OrderStatus } from "./order.types.js";
+
 export type CreateOrderRepositoryInput = {
     userId?: number | null;
     totalPriceCents: number;
@@ -80,4 +82,9 @@ export type OrderDetailsRow = OrderSummaryRow & {
   shipping_country: string | null;
 
   items: OrderItemDetailsRow[];
+};
+
+export type UpdateOrderStatusRepositoryInput = {
+    orderId: number;
+    status: OrderStatus;
 };

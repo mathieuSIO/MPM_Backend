@@ -8,6 +8,7 @@ import authRouter from "./routes/auth.router.js";
 import { errorHandler } from "./middleware/error-handler.middleware.js";
 import productRouter from "./routes/product.router.js";
 import uploadRouter from "./routes/upload.router.js";
+import adminOrderRouter from "./routes/admin-order.router.js";
 
 const uploadsDirectory = path.resolve(process.cwd(), "uploads");
 
@@ -20,6 +21,7 @@ app.use(cors({
 
 app.use("/api/devis", devisRouter);
 app.use("/api/orders", orderRouter);
+app.use("/api/admin/orders", adminOrderRouter);
 app.use("/api/me", meRouter);
 app.use("/api/auth", authRouter);
 app.use("/uploads", express.static(uploadsDirectory));  

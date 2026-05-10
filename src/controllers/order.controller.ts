@@ -1,5 +1,6 @@
 import type { Request, Response } from "express";
 import { OrderService } from "../services/order.service.js";
+import type { OrderStatus } from "../types/order.types.js";
 
 export class OrderController {
     constructor(private readonly orderService = new OrderService()) { }
@@ -40,6 +41,38 @@ export class OrderController {
         res.status(200).json({
             success: true,
             data: order,
+        });
+    };
+
+    getAdminOrders = async (_req: Request, res: Response): Promise<void> => {
+        const orders = await this.orderService.getAdminOrders();
+
+        res.status(200).json({
+            success: true,
+            data: orders,
+        });
+    };
+
+    getAdminOrderDetails = async (req: Request, res: Response): Promise<void> => {
+        const orderId = Number(req.params.orderId);
+
+        const order = await this.orderService.getAdminOrderDetails(orderId);
+
+        res.status(200).json({
+            success: true,
+            data: order,
+        });
+    };
+
+    updateAdminOrderStatus = async (req: Request, res: Response): Promise<void> => {
+        const orderId = Number(req.params.orderId);
+        const status = req.body.status as OrderStatus;
+
+        await this.orderService.updateOrderStatus(orderId, status);
+
+        res.status(200).json({
+            success: true,
+            message: "Order status updated successfully",
         });
     };
 

@@ -2,6 +2,7 @@ import { BadRequestError, NotFoundError } from "../errors/http-errors.js";
 import { OrderRepository } from "../repositories/order.repository.js";
 import type { CreateOrderRepositoryOutput, OrderDetailsRow, OrderSummaryRow } from "../types/order.repository.types.js";
 import type { CreateOrderWithItemsServiceInput } from "../types/order.service.types.js";
+import type { OrderStatus } from "../types/order.types.js";
 
 export class OrderService {
     constructor(private readonly orderRepository = new OrderRepository()) { }
@@ -68,4 +69,37 @@ export class OrderService {
             return total + item.quantity * item.unitPriceCents;
         }, 0);
     }
+
+    async getAdminOrders(): Promise<OrderSummaryRow[]> {
+        return this.orderRepository.findAllOrders();
+    }
+
+    async getAdminOrderDetails(orderId: number): Promise<OrderDetailsRow> {
+        if (!Number.isInteger(orderId) || orderId <= 0) {
+            throw new BadRequestError("Invalid order id");
+        }
+
+        const order = await this.orderRepository.findAdminOrderDetailsById(orderId);
+
+        if (!order) {
+            throw new NotFoundError("Order not found");
+        }
+
+        return order;
+    }
+
+    async updateOrderStatus(orderId: number, status: OrderStatus): Promise<void> {
+        if (!Number.isInteger(orderId) || orderId <= 0) {
+            throw new BadRequestError("Invalid order id");
+        }
+
+        const order = await this.orderRepository.findAdminOrderDetailsById(orderId);
+
+        if (!order) {
+            throw new NotFoundError("Order not found");
+        }
+
+        await this.orderRepository.updateOrderStatus(orderId, status);
+    }
+
 }
