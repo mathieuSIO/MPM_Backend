@@ -15,6 +15,8 @@ export type AuthUserRow = {
 
     created_at: Date;
     updated_at: Date;
+
+    role: UserRole;
 };
 
 export type PublicAuthUser = {
@@ -30,6 +32,8 @@ export type PublicAuthUser = {
     postalCode: string | null;
     city: string | null;
     country: string | null;
+
+    role: UserRole;
 };
 
 export type CreateAuthUserInput = {
@@ -63,3 +67,5 @@ export type LoginInput = {
   email: string;
   password: string;
 };
+
+export type UserRole = "user" | "admin";

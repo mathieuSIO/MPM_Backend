@@ -6,9 +6,10 @@ import { UnauthorizedError } from "../errors/http-errors.js";
 
 type JwtPayload = {
     userId: number;
+    role: "user" | "admin";
 };
 
-export const requireAuth = ( req: Request, _res: Response, next: NextFunction) => {
+export const requireAuth = (req: Request, _res: Response, next: NextFunction) => {
     const authHeader = req.headers.authorization;
 
     if (!authHeader) {

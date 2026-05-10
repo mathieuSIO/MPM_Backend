@@ -30,7 +30,7 @@ export class AuthService {
 
         return {
             user: publicUser,
-            token: this.generateToken(publicUser.id),
+            token: this.generateToken(publicUser.id, publicUser.role),
         };
     }
 
@@ -51,7 +51,7 @@ export class AuthService {
 
         return {
             user: publicUser,
-            token: this.generateToken(publicUser.id),
+            token: this.generateToken(publicUser.id, publicUser.role),
         };
     }
 
@@ -61,6 +61,7 @@ export class AuthService {
         return {
             id: user.id,
             email: user.email,
+            role: user.role,
             firstName: user.first_name,
             lastName: user.last_name,
             phone: user.phone,
@@ -72,9 +73,9 @@ export class AuthService {
         };
     }
 
-    private generateToken(userId: number): string {
+    private generateToken(userId: number, role: PublicAuthUser["role"]): string {
         return jwt.sign(
-            { userId },
+            { userId, role },
             env.jwtSecret,
             { expiresIn: env.jwtExpiresIn }
         );
