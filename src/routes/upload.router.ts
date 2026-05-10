@@ -4,6 +4,7 @@ import { UploadController } from "../controllers/upload.controller.js";
 import { requireAuth } from "../middleware/require-auth.middleware.js";
 import { uploadLogoMiddleware } from "../middleware/upload-logo.middleware.js";
 import { asyncHandler } from "../middleware/async-handler.middleware.js";
+import { uploadFinalPreviewMiddleware } from "../middleware/upload-final-preview.middleware.js";
 
 const uploadRouter = Router();
 
@@ -14,6 +15,13 @@ uploadRouter.post(
   requireAuth,
   uploadLogoMiddleware.single("file"),
   asyncHandler(uploadController.uploadLogo.bind(uploadController))
+);
+
+uploadRouter.post(
+  "/final-previews",
+  requireAuth,
+  uploadFinalPreviewMiddleware.single("file"),
+  asyncHandler(uploadController.uploadFinalPreview.bind(uploadController))
 );
 
 export default uploadRouter;

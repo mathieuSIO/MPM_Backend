@@ -30,4 +30,27 @@ export class UploadController {
       data: uploadedFile,
     });
   }
+
+  async uploadFinalPreview(req: Request, res: Response): Promise<void> {
+    const authenticatedReq = req as AuthenticatedRequest;
+
+    if (!authenticatedReq.user) {
+      throw new AppError("Utilisateur non authentifié.", 401);
+    }
+
+    if (!authenticatedReq.file) {
+      throw new AppError("Aucun fichier envoyé.", 400);
+    }
+
+    const uploadedFile = await uploadService.saveFinalPreviewFile({
+      file: authenticatedReq.file,
+      userId: authenticatedReq.user.userId,
+      publicApiUrl: env.apiPublicUrl,
+    });
+
+    res.status(201).json({
+      success: true,
+      data: uploadedFile,
+    });
+  }
 }
