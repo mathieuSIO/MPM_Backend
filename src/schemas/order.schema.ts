@@ -3,7 +3,7 @@ import { z } from "zod";
 export const createOrderSchema = z.object({
     order: z.object({
         userId: z.number().int().positive().nullable().optional(),
-        customerEmail: z.email(),
+        customerEmail: z.email({ message: "Invalid email address" }),
         customerFirstName: z.string().nullable().optional(),
         customerLastName: z.string().nullable().optional(),
         customerPhone: z.string().nullable().optional(),

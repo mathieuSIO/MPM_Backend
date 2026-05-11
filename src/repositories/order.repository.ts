@@ -98,7 +98,6 @@ export class OrderRepository {
             return result.rows;
         } catch (err) {
             console.log("Error fetching orders by user ID:", err);
-            await client.query("ROLLBACK");
             throw err;
         } finally {
             client.release();
