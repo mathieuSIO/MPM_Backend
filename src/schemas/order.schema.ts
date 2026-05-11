@@ -7,6 +7,7 @@ export const createOrderSchema = z.object({
         customerFirstName: z.string().nullable().optional(),
         customerLastName: z.string().nullable().optional(),
         customerPhone: z.string().nullable().optional(),
+        productionOption: z.enum(["standard", "rapide", "premium"]).optional(),
         shippingAddressLine1: z.string().nullable().optional(),
         shippingAddressLine2: z.string().nullable().optional(),
         shippingPostalCode: z.string().nullable().optional(),
