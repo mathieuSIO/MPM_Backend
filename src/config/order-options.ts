@@ -17,3 +17,5 @@ export const PRODUCTION_OPTIONS = {
 } as const;
 
 export type ProductionOption = keyof typeof PRODUCTION_OPTIONS;
+
+export const PROFESSIONAL_LOGO_REVIEW_PRICE_CENTS = 1500;

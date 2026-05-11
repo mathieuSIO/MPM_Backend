@@ -3,7 +3,7 @@ import { z } from "zod";
 export const createOrderSchema = z.object({
     order: z.object({
         userId: z.number().int().positive().nullable().optional(),
-        customerEmail: z.string().email(),
+        customerEmail: z.email(),
         customerFirstName: z.string().nullable().optional(),
         customerLastName: z.string().nullable().optional(),
         customerPhone: z.string().nullable().optional(),
@@ -13,6 +13,7 @@ export const createOrderSchema = z.object({
         shippingPostalCode: z.string().nullable().optional(),
         shippingCity: z.string().nullable().optional(),
         shippingCountry: z.string().nullable().optional(),
+        professionalLogoReviewEnabled: z.boolean().optional(),
     }),
     items: z.array(
         z.object({

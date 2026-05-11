@@ -1,4 +1,4 @@
-import type { ProductionOption } from "../config/production-options.js";
+import type { ProductionOption } from "../config/order-options.js";
 import type { OrderStatus } from "./order.types.js";
 
 export type CreateOrderRepositoryInput = {
@@ -17,6 +17,8 @@ export type CreateOrderRepositoryInput = {
   productionLabel: string;
   productionPercentage: number;
   productionPriceCents: number;
+  professionalLogoReviewEnabled: boolean;
+  professionalLogoReviewPriceCents: number;
 };
 
 export type CreateOrderRepositoryOutput = { id: number };
@@ -68,6 +70,8 @@ export type OrderSummaryRow = {
   production_label: string;
   production_percentage: number;
   production_price_cents: number;
+  professional_logo_review_enabled: boolean;
+  professional_logo_review_price_cents: number;
 };
 
 export type OrderItemDetailsRow = {
@@ -96,4 +100,4 @@ export type OrderDetailsRow = OrderSummaryRow & {
 export type UpdateOrderStatusRepositoryInput = {
   orderId: number;
   status: OrderStatus;
-};
+};  

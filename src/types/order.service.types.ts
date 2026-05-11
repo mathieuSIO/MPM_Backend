@@ -1,4 +1,4 @@
-import type { ProductionOption } from "../config/production-options.js";
+import type { ProductionOption } from "../config/order-options.js";
 
 export type CreateOrderWithItemsServiceInput = {
     order: {
@@ -16,6 +16,7 @@ export type CreateOrderWithItemsServiceInput = {
         shippingCountry?: string | null;
         
         productionOption?: ProductionOption;
+        professionalLogoReviewEnabled?: boolean;
     };
 
     items: {

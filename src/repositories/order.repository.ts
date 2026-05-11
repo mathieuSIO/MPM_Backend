@@ -86,7 +86,9 @@ export class OrderRepository {
                     production_option,
                     production_label,
                     production_percentage,
-                    production_price_cents
+                    production_price_cents,
+                    professional_logo_review_enabled,
+                    professional_logo_review_price_cents
                 FROM orders 
                 WHERE user_id = $1
                 ORDER BY created_at DESC
@@ -123,7 +125,9 @@ export class OrderRepository {
                 production_option,
                 production_label,
                 production_percentage,
-                production_price_cents
+                production_price_cents,
+                professional_logo_review_enabled,
+                professional_logo_review_price_cents
             FROM orders
             WHERE id = $1 AND user_id = $2
             `,
@@ -172,7 +176,9 @@ export class OrderRepository {
             production_option,
             production_label,
             production_percentage,
-            production_price_cents
+            production_price_cents,
+            professional_logo_review_enabled,
+            professional_logo_review_price_cents
         FROM orders
         ORDER BY created_at DESC
         `
@@ -201,7 +207,9 @@ export class OrderRepository {
             production_option,
             production_label,
             production_percentage,
-            production_price_cents
+            production_price_cents,
+            professional_logo_review_enabled,
+            professional_logo_review_price_cents
         FROM orders
         WHERE id = $1
         `,
@@ -265,9 +273,11 @@ export class OrderRepository {
                     production_option,
                     production_label,
                     production_percentage,
-                    production_price_cents
+                    production_price_cents,
+                    professional_logo_review_enabled,
+                    professional_logo_review_price_cents
                 )
-                VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15)
+                VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17)
                 RETURNING id`,
             [
                 input.userId ?? null,
@@ -285,6 +295,8 @@ export class OrderRepository {
                 input.productionLabel,
                 input.productionPercentage,
                 input.productionPriceCents,
+                input.professionalLogoReviewEnabled,
+                input.professionalLogoReviewPriceCents,
             ]
         );
 

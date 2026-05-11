@@ -1,4 +1,4 @@
-import { PRODUCTION_OPTIONS } from "../config/production-options.js";
+import { PRODUCTION_OPTIONS, PROFESSIONAL_LOGO_REVIEW_PRICE_CENTS } from "../config/order-options.js";
 import { BadRequestError, NotFoundError } from "../errors/http-errors.js";
 import { OrderRepository } from "../repositories/order.repository.js";
 import type { CreateOrderRepositoryOutput, OrderDetailsRow, OrderSummaryRow } from "../types/order.repository.types.js";
@@ -26,7 +26,17 @@ export class OrderService {
             (itemsTotalPriceCents * productionConfig.percentage) / 100
         );
 
-        const totalPriceCents = itemsTotalPriceCents + productionPriceCents;
+        const professionalLogoReviewEnabled =
+            input.order.professionalLogoReviewEnabled ?? false;
+
+        const professionalLogoReviewPriceCents = professionalLogoReviewEnabled
+            ? PROFESSIONAL_LOGO_REVIEW_PRICE_CENTS
+            : 0;
+
+        const totalPriceCents =
+            itemsTotalPriceCents +
+            productionPriceCents +
+            professionalLogoReviewPriceCents;
 
         return this.orderRepository.createOrderWithItems({
             order: {
@@ -37,6 +47,8 @@ export class OrderService {
                 productionLabel: productionConfig.label,
                 productionPercentage: productionConfig.percentage,
                 productionPriceCents,
+                professionalLogoReviewEnabled,
+                professionalLogoReviewPriceCents
             },
             items: input.items,
         });
