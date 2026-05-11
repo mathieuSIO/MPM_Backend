@@ -144,11 +144,7 @@ export class OrderRepository {
                 unit_price_cents,
                 total_price_cents,
                 customization,
-                final_preview_url,
-                production_option,
-                production_label,
-                production_percentage,
-                production_price_cents
+                final_preview_url
             FROM order_items
             WHERE order_id = $1
             ORDER BY id ASC
@@ -226,11 +222,7 @@ export class OrderRepository {
             unit_price_cents,
             total_price_cents,
             customization,
-            final_preview_url,
-            production_option,
-            production_label,
-            production_percentage,
-            production_price_cents
+            final_preview_url
         FROM order_items
         WHERE order_id = $1
         ORDER BY id ASC

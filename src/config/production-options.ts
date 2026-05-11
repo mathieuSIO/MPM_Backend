@@ -12,7 +12,7 @@ export const PRODUCTION_OPTIONS = {
     premium: {
         label: "Premium",
         estimatedDelay: "2 à 3 jours ouvrés",
-        percentage: 20,
+        percentage: 30,
     },
 } as const;
 
