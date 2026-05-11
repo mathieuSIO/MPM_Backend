@@ -1,3 +1,4 @@
+import { PRODUCTION_OPTIONS } from "../config/production-options.js";
 import { BadRequestError, NotFoundError } from "../errors/http-errors.js";
 import { OrderRepository } from "../repositories/order.repository.js";
 import type { CreateOrderRepositoryOutput, OrderDetailsRow, OrderSummaryRow } from "../types/order.repository.types.js";
@@ -17,13 +18,25 @@ export class OrderService {
     async createOrderWithItems(input: CreateOrderWithItemsServiceInput): Promise<CreateOrderRepositoryOutput> {
         this.validateCreateOrderWithItemsInput(input);
 
-        const totalPriceCents = this.calculateTotalPriceCents(input);
+        const itemsTotalPriceCents = this.calculateItemsTotalPriceCents(input);
+        const productionOption = input.order.productionOption ?? "standard";
+        const productionConfig = PRODUCTION_OPTIONS[productionOption];
+
+        const productionPriceCents = Math.round(
+            (itemsTotalPriceCents * productionConfig.percentage) / 100
+        );
+
+        const totalPriceCents = itemsTotalPriceCents + productionPriceCents;
 
         return this.orderRepository.createOrderWithItems({
             order: {
                 ...input.order,
                 totalPriceCents,
                 shippingCountry: input.order.shippingCountry ?? "France",
+                productionOption,
+                productionLabel: productionConfig.label,
+                productionPercentage: productionConfig.percentage,
+                productionPriceCents,
             },
             items: input.items,
         });
@@ -64,7 +77,7 @@ export class OrderService {
         }
     }
 
-    private calculateTotalPriceCents(input: CreateOrderWithItemsServiceInput): number {
+    private calculateItemsTotalPriceCents(input: CreateOrderWithItemsServiceInput): number {
         return input.items.reduce((total, item) => {
             return total + item.quantity * item.unitPriceCents;
         }, 0);

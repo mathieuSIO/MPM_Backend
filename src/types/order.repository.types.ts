@@ -1,28 +1,33 @@
+import type { ProductionOption } from "../config/production-options.js";
 import type { OrderStatus } from "./order.types.js";
 
 export type CreateOrderRepositoryInput = {
-    userId?: number | null;
-    totalPriceCents: number;
-    customerEmail: string;
-    customerFirstName?: string | null;
-    customerLastName?: string | null;
-    customerPhone?: string | null;
-    shippingAddressLine1?: string | null;
-    shippingAddressLine2?: string | null;
-    shippingPostalCode?: string | null;
-    shippingCity?: string | null;
-    shippingCountry?: string | null;
+  userId?: number | null;
+  totalPriceCents: number;
+  customerEmail: string;
+  customerFirstName?: string | null;
+  customerLastName?: string | null;
+  customerPhone?: string | null;
+  shippingAddressLine1?: string | null;
+  shippingAddressLine2?: string | null;
+  shippingPostalCode?: string | null;
+  shippingCity?: string | null;
+  shippingCountry?: string | null;
+  productionOption: ProductionOption;
+  productionLabel: string;
+  productionPercentage: number;
+  productionPriceCents: number;
 };
 
 export type CreateOrderRepositoryOutput = { id: number };
 
 export type CreateOrderItemsInput = {
-    productId: number;
-    productName: string;
-    quantity: number;
-    unitPriceCents: number;
-    customization?: OrderItemCustomization | null;
-    finalPreviewUrl?: string | null;
+  productId: number;
+  productName: string;
+  quantity: number;
+  unitPriceCents: number;
+  customization?: OrderItemCustomization | null;
+  finalPreviewUrl?: string | null;
 }
 
 export type CreateOrderWithItemsInput = {
@@ -59,6 +64,10 @@ export type OrderSummaryRow = {
   customer_last_name: string | null;
   customer_email: string;
   created_at: Date;
+  production_option: string;
+  production_label: string;
+  production_percentage: number;
+  production_price_cents: number;
 };
 
 export type OrderItemDetailsRow = {
@@ -85,6 +94,6 @@ export type OrderDetailsRow = OrderSummaryRow & {
 };
 
 export type UpdateOrderStatusRepositoryInput = {
-    orderId: number;
-    status: OrderStatus;
+  orderId: number;
+  status: OrderStatus;
 };

@@ -1,3 +1,5 @@
+import type { ProductionOption } from "../config/production-options.js";
+
 export type CreateOrderWithItemsServiceInput = {
     order: {
         userId?: number | null;
@@ -12,6 +14,8 @@ export type CreateOrderWithItemsServiceInput = {
         shippingPostalCode?: string | null;
         shippingCity?: string | null;
         shippingCountry?: string | null;
+        
+        productionOption?: ProductionOption;
     };
 
     items: {

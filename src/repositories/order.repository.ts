@@ -82,7 +82,11 @@ export class OrderRepository {
                     customer_first_name,
                     customer_last_name,
                     customer_email,
-                    created_at
+                    created_at,
+                    production_option,
+                    production_label,
+                    production_percentage,
+                    production_price_cents
                 FROM orders 
                 WHERE user_id = $1
                 ORDER BY created_at DESC
@@ -115,7 +119,11 @@ export class OrderRepository {
                 shipping_postal_code,
                 shipping_city,
                 shipping_country,
-                created_at
+                created_at,
+                production_option,
+                production_label,
+                production_percentage,
+                production_price_cents
             FROM orders
             WHERE id = $1 AND user_id = $2
             `,
@@ -136,7 +144,11 @@ export class OrderRepository {
                 unit_price_cents,
                 total_price_cents,
                 customization,
-                final_preview_url
+                final_preview_url,
+                production_option,
+                production_label,
+                production_percentage,
+                production_price_cents
             FROM order_items
             WHERE order_id = $1
             ORDER BY id ASC
@@ -160,7 +172,11 @@ export class OrderRepository {
             customer_first_name,
             customer_last_name,
             customer_email,
-            created_at
+            created_at,
+            production_option,
+            production_label,
+            production_percentage,
+            production_price_cents
         FROM orders
         ORDER BY created_at DESC
         `
@@ -185,7 +201,11 @@ export class OrderRepository {
             shipping_postal_code,
             shipping_city,
             shipping_country,
-            created_at
+            created_at,
+            production_option,
+            production_label,
+            production_percentage,
+            production_price_cents
         FROM orders
         WHERE id = $1
         `,
@@ -206,7 +226,11 @@ export class OrderRepository {
             unit_price_cents,
             total_price_cents,
             customization,
-            final_preview_url
+            final_preview_url,
+            production_option,
+            production_label,
+            production_percentage,
+            production_price_cents
         FROM order_items
         WHERE order_id = $1
         ORDER BY id ASC
@@ -245,9 +269,13 @@ export class OrderRepository {
                     shipping_address_line2,
                     shipping_postal_code,
                     shipping_city,
-                    shipping_country
+                    shipping_country,
+                    production_option,
+                    production_label,
+                    production_percentage,
+                    production_price_cents
                 )
-                VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11)
+                VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15)
                 RETURNING id`,
             [
                 input.userId ?? null,
@@ -261,6 +289,10 @@ export class OrderRepository {
                 input.shippingPostalCode ?? null,
                 input.shippingCity ?? null,
                 input.shippingCountry ?? null,
+                input.productionOption,
+                input.productionLabel,
+                input.productionPercentage,
+                input.productionPriceCents,
             ]
         );
 
