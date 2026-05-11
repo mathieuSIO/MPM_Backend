@@ -23,10 +23,32 @@ export const requireAuth = (req: Request, _res: Response, next: NextFunction) =>
     }
 
     try {
-        const decoded = jwt.verify(token, env.jwtSecret) as JwtPayload;
+        const decoded = jwt.verify(token, env.jwtSecret);
+
+        if (
+            typeof decoded !== "object" ||
+            decoded === null ||
+            !("userId" in decoded) ||
+            !("role" in decoded)
+        ) {
+            throw new UnauthorizedError("Invalid or expired token");
+        }
+
+        const userId = decoded.userId;
+        const role = decoded.role;
+
+        if (
+            typeof userId !== "number" ||
+            (role !== "user" && role !== "admin")
+        ) {
+            throw new UnauthorizedError("Invalid or expired token");
+        }
 
         // on injecte l'utilisateur dans la requête
-        (req as Request & { user: JwtPayload }).user = decoded;
+        (req as Request & { user: JwtPayload }).user = {
+            userId,
+            role,
+        };
 
         next();
     } catch {
