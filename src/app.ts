@@ -10,10 +10,14 @@ import uploadRouter from "./routes/upload.router.js";
 import adminOrderRouter from "./routes/admin-order.router.js";
 import { env } from "./config/env.js";
 import { errorHandler } from "./middleware/error-handler.middleware.js";
+import paymentRouter from "./routes/payment.router.js";
+import paymentWebhookRouter from "./routes/payment-webhook.router.js";
 
 const uploadsDirectory = path.resolve(process.cwd(), "uploads");
 
 const app = express();
+app.use("/api/payments/webhook", paymentWebhookRouter);
+
 app.use(express.json());
 
 app.use(cors({
@@ -28,6 +32,7 @@ app.use("/api/auth", authRouter);
 app.use("/uploads", express.static(uploadsDirectory));  
 app.use("/api/products", productRouter);
 app.use("/api/uploads", uploadRouter);
+app.use("/api/payments", paymentRouter);
 
 //Check if server life is good
 app.get("/api/health", (_req, res) => {

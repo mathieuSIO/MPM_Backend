@@ -247,11 +247,39 @@ export class OrderRepository {
         await db.query(
             `
         UPDATE orders
-        SET status = $1
+        SET
+            status = $1,
+            updated_at = NOW()
         WHERE id = $2
         `,
             [status, orderId]
         );
+    }
+
+    async findOrderById(orderId: number): Promise<OrderSummaryRow | null> {
+        const result = await db.query<OrderSummaryRow>(
+            `
+        SELECT
+            id,
+            status,
+            total_price_cents,
+            customer_first_name,
+            customer_last_name,
+            customer_email,
+            created_at,
+            production_option,
+            production_label,
+            production_percentage,
+            production_price_cents,
+            professional_logo_review_enabled,
+            professional_logo_review_price_cents
+        FROM orders
+        WHERE id = $1
+        `,
+            [orderId]
+        );
+
+        return result.rows[0] ?? null;
     }
 
     //#region Private methods for request handling

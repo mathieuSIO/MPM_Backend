@@ -22,4 +22,7 @@ export const env = {
   frontendOrigin: process.env.FRONTEND_ORIGIN || "http://localhost:5173",
 
   apiPublicUrl: process.env.API_PUBLIC_URL || "http://localhost:4000",
+
+  stripeSecretKey: requiredEnv("STRIPE_SECRET_KEY"),
+  stripeWebhookSecret: requiredEnv("STRIPE_WEBHOOK_SECRET"),
 };
