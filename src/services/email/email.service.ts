@@ -11,6 +11,11 @@ type OrderPaidEmailInput = {
     totalPriceCents: number;
 };
 
+type AccountCreatedEmailInput = {
+    email: string;
+    firstName: string | null;
+};
+
 export class EmailService {
     constructor(
         private readonly emailProvider: EmailProvider =

@@ -6,9 +6,13 @@ import { env } from "../config/env.js";
 import { BadRequestError, UnauthorizedError } from "../errors/http-errors.js";
 
 import type { AuthResponse, AuthUserRow, LoginInput, PublicAuthUser, RegisterInput } from "../types/auth.types.js";
+import { EmailService } from "./email/email.service.js";
 
 export class AuthService {
-    constructor(private readonly authRepository = new AuthRepository()) { }
+    constructor(
+        private readonly authRepository = new AuthRepository(),
+        private readonly emailService = new EmailService()
+    ) { }
 
     async register(input: RegisterInput): Promise<AuthResponse> {
         const existingUser = await this.authRepository.findUserByEmail(input.email);
@@ -25,6 +29,18 @@ export class AuthService {
             firstName: input.firstName ?? null,
             lastName: input.lastName ?? null,
         });
+
+        try {
+            await this.emailService.sendAccountCreatedEmail({
+                email: user.email,
+                firstName: user.first_name,
+            });
+        } catch (error) {
+            console.error(
+                "Failed to send account created email:",
+                error
+            );
+        }
 
         const publicUser = this.toPublicUser(user);
 
