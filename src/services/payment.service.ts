@@ -6,11 +6,13 @@ import { OrderRepository } from "../repositories/order.repository.js";
 import { PaymentRepository } from "../repositories/payment.repository.js";
 
 import { env } from "../config/env.js";
+import { EmailService } from "./email/email.service.js";
 
 export class PaymentService {
     constructor(
         private readonly orderRepository = new OrderRepository(),
-        private readonly paymentRepository = new PaymentRepository()
+        private readonly paymentRepository = new PaymentRepository(),
+        private readonly emailService = new EmailService(),
     ) { }
 
     async createCheckoutSession(orderId: number): Promise<string> {
@@ -89,5 +91,34 @@ export class PaymentService {
             payment.order_id,
             "paid"
         );
+
+        const order = await this.orderRepository.findOrderById(
+            payment.order_id
+        );
+
+        if (!order) {
+            throw new NotFoundError("Order not found");
+        }
+
+        try {
+            await this.emailService.sendOrderPaidCustomerEmail({
+                customerEmail: order.customer_email,
+                customerFirstName: order.customer_first_name,
+                orderId: order.id,
+                totalPriceCents: order.total_price_cents,
+            });
+
+            await this.emailService.sendNewPaidOrderAdminEmail({
+                customerEmail: order.customer_email,
+                customerFirstName: order.customer_first_name,
+                orderId: order.id,
+                totalPriceCents: order.total_price_cents,
+            });
+        } catch (error) {
+            console.error(
+                "Failed to send transactional emails:",
+                error
+            );
+        }
     }
 }

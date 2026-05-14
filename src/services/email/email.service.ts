@@ -1,0 +1,169 @@
+import { emailConfig } from "../../config/email.js";
+
+import type { EmailProvider } from "./email-provider.interface.js";
+
+import { SmtpEmailProvider } from "./smtp-email.provider.js";
+
+type OrderPaidEmailInput = {
+    customerEmail: string;
+    customerFirstName: string | null;
+    orderId: number;
+    totalPriceCents: number;
+};
+
+export class EmailService {
+    constructor(
+        private readonly emailProvider: EmailProvider =
+            new SmtpEmailProvider()
+    ) { }
+
+    async sendAccountCreatedEmail(
+        input: AccountCreatedEmailInput
+    ): Promise<void> {
+        if (!emailConfig.enabled) {
+            return;
+        }
+
+        await this.emailProvider.sendEmail({
+            to: input.email,
+
+            subject: "Bienvenue sur Mon Petit Matos",
+
+            html: `
+            <h1>Bienvenue sur Mon Petit Matos</h1>
+
+            <p>
+                Bonjour${input.firstName ? ` ${input.firstName}` : ""},
+            </p>
+
+            <p>
+                Votre compte a bien été créé.
+            </p>
+
+            <p>
+                Vous pouvez maintenant vous connecter à votre espace client,
+                suivre vos commandes et retrouver vos informations.
+            </p>
+
+            <p>
+                Merci pour votre confiance.
+            </p>
+
+            <p>
+                Mon Petit Matos
+            </p>
+        `,
+
+            text:
+                "Bienvenue sur Mon Petit Matos. " +
+                "Votre compte a bien été créé. " +
+                "Vous pouvez maintenant vous connecter à votre espace client.",
+        });
+    }
+
+    async sendOrderPaidCustomerEmail(
+        input: OrderPaidEmailInput
+    ): Promise<void> {
+        if (!emailConfig.enabled) {
+            return;
+        }
+
+        const total = this.formatPrice(input.totalPriceCents);
+
+        await this.emailProvider.sendEmail({
+            to: input.customerEmail,
+
+            subject: "Votre commande Mon Petit Matos est confirmée",
+
+            html: `
+                <h1>Commande confirmée</h1>
+
+                <p>
+                    Bonjour${input.customerFirstName
+                    ? ` ${input.customerFirstName}`
+                    : ""
+                },
+                </p>
+
+                <p>
+                    Nous avons bien reçu votre paiement.
+                </p>
+
+                <p>
+                    Votre commande #${input.orderId} est maintenant confirmée.
+                </p>
+
+                <p>
+                    <strong>Total payé :</strong> ${total}
+                </p>
+
+                <p>
+                    Nous allons préparer votre commande et revenir vers vous
+                    si nécessaire pour la validation des visuels.
+                </p>
+
+                <p>
+                    Merci pour votre confiance.
+                </p>
+
+                <p>
+                    Mon Petit Matos
+                </p>
+            `,
+
+            text:
+                `Votre commande #${input.orderId} est confirmée. ` +
+                `Total payé : ${total}.`,
+        });
+    }
+
+    async sendNewPaidOrderAdminEmail(
+        input: OrderPaidEmailInput
+    ): Promise<void> {
+        console.log("sendNewPaidOrderAdminEmail called");
+
+        if (!emailConfig.enabled) {
+            console.log("Admin email skipped: EMAIL_ENABLED is false");
+            return;
+        }
+
+        const adminEmail =
+            emailConfig.adminOrderEmail ?? emailConfig.from.address;
+
+        console.log("adminEmail:", adminEmail);
+
+        if (!adminEmail) {
+            console.log("Admin email skipped: no admin email configured");
+            return;
+        }
+
+        const total = this.formatPrice(input.totalPriceCents);
+
+        await this.emailProvider.sendEmail({
+            to: adminEmail,
+            subject: `Nouvelle commande payée #${input.orderId}`,
+            html: `
+            <h1>Nouvelle commande payée</h1>
+            <p>Une nouvelle commande vient d’être payée sur le site.</p>
+            <ul>
+                <li><strong>Commande :</strong> #${input.orderId}</li>
+                <li><strong>Client :</strong> ${input.customerEmail}</li>
+                <li><strong>Total :</strong> ${total}</li>
+            </ul>
+        `,
+            text:
+                `Nouvelle commande payée #${input.orderId}. ` +
+                `Client : ${input.customerEmail}. ` +
+                `Total : ${total}.`,
+        });
+
+        console.log("Admin order email sent");
+    }
+
+    private formatPrice(amountCents: number): string {
+        return new Intl.NumberFormat("fr-FR", {
+            style: "currency",
+            currency: "EUR",
+        }).format(amountCents / 100);
+    }
+}
