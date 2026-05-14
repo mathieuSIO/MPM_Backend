@@ -1,0 +1,11 @@
+node_modules
+dist
+.env
+.env.*
+uploads
+.git
+.gitignore
+Dockerfile
+docker-compose.yml
+docker-compose.prod.yml
+npm-debug.log
