@@ -11,6 +11,8 @@ build/
 .env.development
 .env.production
 .env.test
+.env.*
+!.env.production.example
 
 # Logs
 logs/
@@ -41,4 +43,4 @@ tmp/
 temp/
 
 #file uploads
-uploads/*
+uploads
