@@ -1,6 +1,6 @@
 import type { PoolClient } from "pg";
 import { db } from "../db/connection.js";
-import type { CreateOrderRepositoryInput, CreateOrderRepositoryOutput, CreateOrderWithItemsInput, OrderDetailsRow, OrderItemDetailsRow, OrderSummaryRow } from "../types/order.repository.types.js";
+import type { CreateOrderRepositoryInput, CreateOrderRepositoryOutput, CreateOrderWithItemsInput, OrderDetailsRow, OrderItemDetailsRow, OrderSummaryRow, ProductReferenceWeightRow } from "../types/order.repository.types.js";
 import type { OrderStatus } from "../types/order.types.js";
 
 export class OrderRepository {
@@ -30,6 +30,7 @@ export class OrderRepository {
 
             // 1. Create order
             const order = await this.insertOrder(client, input.order);
+            await this.insertOrderShipment(client, order.id, input.shipping);
 
             // 2. Insert items
             for (const item of input.items) {
@@ -282,6 +283,25 @@ export class OrderRepository {
         return result.rows[0] ?? null;
     }
 
+    async findProductReferenceWeightsByProductIds(
+        productIds: number[]
+    ): Promise<ProductReferenceWeightRow[]> {
+        const result = await db.query<ProductReferenceWeightRow>(
+            `
+        SELECT DISTINCT ON (product_id)
+            product_id,
+            weight_grams
+        FROM product_references
+        WHERE product_id = ANY($1::int[])
+          AND is_active = true
+        ORDER BY product_id, id ASC
+        `,
+            [productIds]
+        );
+
+        return result.rows;
+    }
+
     //#region Private methods for request handling
     private async insertOrder(client: PoolClient, input: CreateOrderRepositoryInput): Promise<{ id: number }> {
         const orderResult = await client.query<{ id: number }>(
@@ -330,6 +350,35 @@ export class OrderRepository {
         const order = orderResult.rows[0];
         if (!order) throw new Error("Order creation failed");
         return order;
+    }
+
+    private async insertOrderShipment(
+        client: PoolClient,
+        orderId: number,
+        shipping: CreateOrderWithItemsInput["shipping"]
+    ): Promise<void> {
+        await client.query(
+            `
+        INSERT INTO order_shipments (
+            order_id,
+            shipping_method,
+            shipping_label,
+            shipping_price_cents,
+            total_weight_grams,
+            carrier,
+            status
+        )
+        VALUES ($1, $2, $3, $4, $5, $6, 'pending')
+        `,
+            [
+                orderId,
+                shipping.method,
+                shipping.label,
+                shipping.priceCents,
+                shipping.totalWeightGrams,
+                shipping.method,
+            ]
+        );
     }
     //#endregion
 

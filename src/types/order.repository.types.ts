@@ -1,4 +1,4 @@
-import type { ProductionOption } from "../config/order-options.js";
+import type { ProductionOption, ShippingMethod } from "../config/order-options.js";
 import type { OrderStatus } from "./order.types.js";
 
 export type CreateOrderRepositoryInput = {
@@ -34,6 +34,7 @@ export type CreateOrderItemsInput = {
 
 export type CreateOrderWithItemsInput = {
   order: CreateOrderRepositoryInput;
+  shipping: CreateOrderShipmentInput;
   items: CreateOrderItemsInput[];
 };
 
@@ -100,4 +101,16 @@ export type OrderDetailsRow = OrderSummaryRow & {
 export type UpdateOrderStatusRepositoryInput = {
   orderId: number;
   status: OrderStatus;
-};  
+};
+
+export type CreateOrderShipmentInput = {
+  method: ShippingMethod;
+  label: string;
+  priceCents: number;
+  totalWeightGrams: number;
+};
+
+export type ProductReferenceWeightRow = {
+  product_id: number;
+  weight_grams: number | null;
+};

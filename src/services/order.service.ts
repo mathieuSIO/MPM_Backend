@@ -1,4 +1,10 @@
-import { PRODUCTION_OPTIONS, PROFESSIONAL_LOGO_REVIEW_PRICE_CENTS } from "../config/order-options.js";
+import {
+    DEFAULT_SHIPPING_METHOD,
+    getShippingPriceCents,
+    PRODUCTION_OPTIONS,
+    PROFESSIONAL_LOGO_REVIEW_PRICE_CENTS,
+    SHIPPING_OPTIONS,
+} from "../config/order-options.js";
 import { BadRequestError, NotFoundError } from "../errors/http-errors.js";
 import { OrderRepository } from "../repositories/order.repository.js";
 import type { CreateOrderRepositoryOutput, OrderDetailsRow, OrderSummaryRow } from "../types/order.repository.types.js";
@@ -33,10 +39,15 @@ export class OrderService {
             ? PROFESSIONAL_LOGO_REVIEW_PRICE_CENTS
             : 0;
 
+        const totalWeightGrams = await this.calculateTotalWeightGrams(input);
+        const shippingPriceCents = getShippingPriceCents(totalWeightGrams);
+        const shippingOption = SHIPPING_OPTIONS[DEFAULT_SHIPPING_METHOD];
+
         const totalPriceCents =
             itemsTotalPriceCents +
             productionPriceCents +
-            professionalLogoReviewPriceCents;
+            professionalLogoReviewPriceCents +
+            shippingPriceCents;
 
         return this.orderRepository.createOrderWithItems({
             order: {
@@ -49,6 +60,12 @@ export class OrderService {
                 productionPriceCents,
                 professionalLogoReviewEnabled,
                 professionalLogoReviewPriceCents
+            },
+            shipping: {
+                method: DEFAULT_SHIPPING_METHOD,
+                label: shippingOption.label,
+                priceCents: shippingPriceCents,
+                totalWeightGrams,
             },
             items: input.items,
         });
@@ -134,5 +151,40 @@ export class OrderService {
 
         return updatedOrder;
     }
+
+    //#region Private methods
+    private async calculateTotalWeightGrams(
+        input: CreateOrderWithItemsServiceInput
+    ): Promise<number> {
+        const productIds = [...new Set(input.items.map((item) => item.productId))];
+
+        const weightRows =
+            await this.orderRepository.findProductReferenceWeightsByProductIds(productIds);
+
+        const weightByProductId = new Map(
+            weightRows.map((row) => [row.product_id, row.weight_grams])
+        );
+
+        let totalWeightGrams = 0;
+
+        for (const item of input.items) {
+            const weightGrams = weightByProductId.get(item.productId);
+
+            if (!weightGrams) {
+                throw new BadRequestError(
+                    `Missing product weight for product id ${item.productId}`
+                );
+            }
+
+            totalWeightGrams += weightGrams * item.quantity;
+        }
+
+        if (totalWeightGrams > 25000) {
+            throw new BadRequestError("Order exceeds maximum Mondial Relay weight");
+        }
+
+        return totalWeightGrams;
+    }
+    //#endregion
 
 }
