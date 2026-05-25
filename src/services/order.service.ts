@@ -152,6 +152,32 @@ export class OrderService {
         return updatedOrder;
     }
 
+    async estimateShipping(input: {
+        items: { productId: number; quantity: number }[];
+    }) {
+        const totalWeightGrams = await this.calculateTotalWeightGrams({
+            order: {
+                customerEmail: "estimate@local.test",
+            },
+            items: input.items.map((item) => ({
+                productId: item.productId,
+                productName: "estimate",
+                quantity: item.quantity,
+                unitPriceCents: 1,
+            })),
+        });
+
+        const shippingPriceCents = getShippingPriceCents(totalWeightGrams);
+        const shippingOption = SHIPPING_OPTIONS[DEFAULT_SHIPPING_METHOD];
+
+        return {
+            shippingMethod: DEFAULT_SHIPPING_METHOD,
+            shippingLabel: shippingOption.label,
+            totalWeightGrams,
+            shippingPriceCents,
+        };
+    }
+
     //#region Private methods
     private async calculateTotalWeightGrams(
         input: CreateOrderWithItemsServiceInput
