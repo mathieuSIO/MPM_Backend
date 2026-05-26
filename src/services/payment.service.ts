@@ -78,7 +78,9 @@ export class PaymentService {
             );
 
         if (!payment) {
-            throw new NotFoundError("Payment not found");
+            console.warn(`Ignoring Stripe checkout.session.completed webhook: payment not found for session ${checkoutSessionId}`);
+
+            return;
         }
 
         await this.paymentRepository.updatePaymentStatusByCheckoutSession({
