@@ -51,8 +51,6 @@ function getBasePriceByProductType(productType: ProductType): number {
     switch (productType) {
         case "tshirt":
             return PRODUCT_BASE_PRICES.tshirt;
-        case "sweatshirt":
-            return PRODUCT_BASE_PRICES.sweatshirt;
         default:
             throw new Error(`Le type de produit est inconnu: ${productType}`);
     }

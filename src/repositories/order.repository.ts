@@ -92,6 +92,7 @@ export class OrderRepository {
                     professional_logo_review_price_cents
                 FROM orders 
                 WHERE user_id = $1
+                AND status IN ('paid', 'processing', 'shipped', 'completed', 'cancelled')
                 ORDER BY created_at DESC
                 `,
                 [userId]
@@ -129,7 +130,9 @@ export class OrderRepository {
                 professional_logo_review_enabled,
                 professional_logo_review_price_cents
             FROM orders
-            WHERE id = $1 AND user_id = $2
+            WHERE id = $1
+            AND user_id = $2
+            AND status IN ('paid', 'processing', 'shipped', 'completed', 'cancelled')
             `,
             [orderId, userId]
         );

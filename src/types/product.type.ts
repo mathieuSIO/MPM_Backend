@@ -1,4 +1,4 @@
-export type ProductType = 'cap' | 'other' | 'polo' | 'sweatshirt' | 'tshirt';
+export type ProductType = 'tshirt';
 
 export enum Color {
   BLACK = "black",
