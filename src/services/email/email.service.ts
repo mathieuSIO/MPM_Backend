@@ -165,6 +165,28 @@ export class EmailService {
         console.log("Admin order email sent");
     }
 
+    async sendPasswordResetEmail(input: {
+        email: string;
+        firstName: string | null;
+        resetUrl: string;
+    }): Promise<void> {
+        await this.emailProvider.sendEmail({
+            to: input.email,
+            subject: "Réinitialisation de votre mot de passe",
+            html: `
+      <p>Bonjour${input.firstName ? ` ${input.firstName}` : ""},</p>
+      <p>Vous avez demandé à réinitialiser votre mot de passe.</p>
+      <p>
+        <a href="${input.resetUrl}">
+          Réinitialiser mon mot de passe
+        </a>
+      </p>
+      <p>Ce lien expire dans 1 heure.</p>
+      <p>Si vous n'êtes pas à l'origine de cette demande, vous pouvez ignorer cet email.</p>
+    `,
+        });
+    }
+
     private formatPrice(amountCents: number): string {
         return new Intl.NumberFormat("fr-FR", {
             style: "currency",

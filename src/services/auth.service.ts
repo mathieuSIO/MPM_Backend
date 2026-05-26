@@ -1,11 +1,12 @@
 import bcrypt from "bcrypt";
 import jwt from "jsonwebtoken";
+import crypto from "crypto";
 
 import { AuthRepository } from "../repositories/auth.repository.js";
 import { env } from "../config/env.js";
 import { BadRequestError, UnauthorizedError } from "../errors/http-errors.js";
 
-import type { AuthResponse, AuthUserRow, LoginInput, PublicAuthUser, RegisterInput } from "../types/auth.types.js";
+import type { AuthResponse, AuthUserRow, ForgotPasswordInput, LoginInput, PublicAuthUser, RegisterInput, ResetPasswordInput } from "../types/auth.types.js";
 import { EmailService } from "./email/email.service.js";
 
 export class AuthService {
@@ -71,6 +72,59 @@ export class AuthService {
         };
     }
 
+    async forgotPassword(input: ForgotPasswordInput): Promise<void> {
+        const user = await this.authRepository.findUserByEmail(input.email);
+
+        if (!user) {
+            return;
+        }
+
+        const resetToken = crypto.randomBytes(32).toString("hex");
+        const tokenHash = this.hashPasswordResetToken(resetToken);
+
+        const expiresAt = new Date(Date.now() + 60 * 60 * 1000);
+
+        await this.authRepository.savePasswordResetToken({
+            userId: user.id,
+            tokenHash,
+            expiresAt,
+        });
+
+        const resetUrl = `${env.frontendOrigin}/reset-password?token=${resetToken}`;
+
+        try {
+            await this.emailService.sendPasswordResetEmail({
+                email: user.email,
+                firstName: user.first_name,
+                resetUrl,
+            });
+        } catch (error) {
+            console.error("Failed to send password reset email:", error);
+        }
+    }
+
+    async resetPassword(input: ResetPasswordInput): Promise<void> {
+        const tokenHash = this.hashPasswordResetToken(input.token);
+
+        const user =
+            await this.authRepository.findUserByPasswordResetTokenHash(tokenHash);
+
+        if (!user || !user.password_reset_expires_at) {
+            throw new BadRequestError("Invalid or expired reset token");
+        }
+
+        if (user.password_reset_expires_at.getTime() < Date.now()) {
+            throw new BadRequestError("Invalid or expired reset token");
+        }
+
+        const passwordHash = await bcrypt.hash(input.password, 10);
+
+        await this.authRepository.updatePasswordAndClearResetToken({
+            userId: user.id,
+            passwordHash,
+        });
+    }
+
     //#region Private methods
 
     private toPublicUser(user: AuthUserRow): PublicAuthUser {
@@ -95,6 +149,10 @@ export class AuthService {
             env.jwtSecret,
             { expiresIn: env.jwtExpiresIn }
         );
+    }
+
+    private hashPasswordResetToken(token: string): string {
+        return crypto.createHash("sha256").update(token).digest("hex");
     }
 
     //#endregion

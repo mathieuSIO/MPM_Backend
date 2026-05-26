@@ -13,3 +13,14 @@ export const loginSchema = z.object({
   email: z.email({ message: "Invalid email address" }).trim().toLowerCase(),
   password: z.string().min(1, { message: "Password is required" }),
 });
+
+export const forgotPasswordSchema = z.object({
+  email: z.email({ message: "Invalid email address" }).trim().toLowerCase(),
+});
+
+export const resetPasswordSchema = z.object({
+  token: z.string().min(32, { message: "Invalid reset token" }),
+  password: z
+    .string()
+    .min(8, { message: "Password must contain at least 8 characters" }),
+});

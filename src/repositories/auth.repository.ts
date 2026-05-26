@@ -1,6 +1,6 @@
 import { db } from "../db/connection.js";
 import { InternalServerError } from "../errors/http-errors.js";
-import type { AuthUserRow, CreateAuthUserInput } from "../types/auth.types.js";
+import type { AuthUserRow, CreateAuthUserInput, PasswordResetUserRow } from "../types/auth.types.js";
 
 export class AuthRepository {
   async findUserByEmail(email: string): Promise<AuthUserRow | null> {
@@ -85,4 +85,62 @@ export class AuthRepository {
 
     return user;
   }
+
+  async savePasswordResetToken(input: {
+    userId: number;
+    tokenHash: string;
+    expiresAt: Date;
+  }): Promise<void> {
+    await db.query(
+      `
+    UPDATE users
+    SET
+      password_reset_token_hash = $1,
+      password_reset_expires_at = $2,
+      updated_at = now()
+    WHERE id = $3
+    `,
+      [input.tokenHash, input.expiresAt, input.userId]
+    );
+  }
+
+  async findUserByPasswordResetTokenHash(
+    tokenHash: string
+  ): Promise<PasswordResetUserRow | null> {
+    const result = await db.query<PasswordResetUserRow>(
+      `
+    SELECT
+      id,
+      email,
+      first_name,
+      password_reset_token_hash,
+      password_reset_expires_at
+    FROM users
+    WHERE password_reset_token_hash = $1
+    LIMIT 1
+    `,
+      [tokenHash]
+    );
+
+    return result.rows[0] ?? null;
+  }
+
+  async updatePasswordAndClearResetToken(input: {
+    userId: number;
+    passwordHash: string;
+  }): Promise<void> {
+    await db.query(
+      `
+    UPDATE users
+    SET
+      password_hash = $1,
+      password_reset_token_hash = null,
+      password_reset_expires_at = null,
+      updated_at = now()
+    WHERE id = $2
+    `,
+      [input.passwordHash, input.userId]
+    );
+  }
+
 }

@@ -57,15 +57,32 @@ export type AuthResponse = {
 };
 
 export type RegisterInput = {
-  email: string;
-  password: string;
-  firstName?: string;
-  lastName?: string;
+    email: string;
+    password: string;
+    firstName?: string;
+    lastName?: string;
 };
 
 export type LoginInput = {
-  email: string;
-  password: string;
+    email: string;
+    password: string;
 };
 
 export type UserRole = "user" | "admin";
+
+export type ForgotPasswordInput = {
+    email: string;
+};
+
+export type ResetPasswordInput = {
+    token: string;
+    password: string;
+};
+
+export type PasswordResetUserRow = {
+    id: number;
+    email: string;
+    first_name: string | null;
+    password_reset_token_hash: string | null;
+    password_reset_expires_at: Date | null;
+};
