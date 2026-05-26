@@ -1,6 +1,6 @@
 import type { PoolClient } from "pg";
 import { db } from "../db/connection.js";
-import type { CreateOrderRepositoryInput, CreateOrderRepositoryOutput, CreateOrderWithItemsInput, OrderDetailsRow, OrderItemDetailsRow, OrderSummaryRow, ProductReferenceWeightRow } from "../types/order.repository.types.js";
+import type { CreateOrderRepositoryInput, CreateOrderRepositoryOutput, CreateOrderWithItemsInput, OrderDetailsRow, OrderItemDetailsRow, OrderSummaryRow, ProductReferenceWeightRow, UpdateOrderShippingInput } from "../types/order.repository.types.js";
 import type { OrderStatus } from "../types/order.types.js";
 
 export class OrderRepository {
@@ -110,29 +110,39 @@ export class OrderRepository {
         const orderResult = await db.query<Omit<OrderDetailsRow, "items">>(
             `
             SELECT
-                id,
-                status,
-                total_price_cents,
-                customer_first_name,
-                customer_last_name,
-                customer_email,
-                customer_phone,
-                shipping_address_line1,
-                shipping_address_line2,
-                shipping_postal_code,
-                shipping_city,
-                shipping_country,
-                created_at,
-                production_option,
-                production_label,
-                production_percentage,
-                production_price_cents,
-                professional_logo_review_enabled,
-                professional_logo_review_price_cents
-            FROM orders
-            WHERE id = $1
-            AND user_id = $2
-            AND status IN ('paid', 'processing', 'shipped', 'completed', 'cancelled')
+                o.id,
+                o.status,
+                o.total_price_cents,
+                o.customer_first_name,
+                o.customer_last_name,
+                o.customer_email,
+                o.customer_phone,
+                o.shipping_address_line1,
+                o.shipping_address_line2,
+                o.shipping_postal_code,
+                o.shipping_city,
+                o.shipping_country,
+                o.created_at,
+                o.production_option,
+                o.production_label,
+                o.production_percentage,
+                o.production_price_cents,
+                o.professional_logo_review_enabled,
+                o.professional_logo_review_price_cents,
+                os.shipping_method,
+                os.shipping_label,
+                os.shipping_price_cents,
+                os.total_weight_grams,
+                os.carrier,
+                os.tracking_number,
+                os.tracking_url,
+                os.status AS shipping_status
+            FROM orders o
+            LEFT JOIN order_shipments os
+            ON os.order_id = o.id
+            WHERE o.id = $1
+            AND o.user_id = $2
+            AND o.status IN ('paid', 'processing', 'shipped', 'completed', 'cancelled')
             `,
             [orderId, userId]
         );
@@ -194,27 +204,37 @@ export class OrderRepository {
         const orderResult = await db.query<Omit<OrderDetailsRow, "items">>(
             `
         SELECT
-            id,
-            status,
-            total_price_cents,
-            customer_first_name,
-            customer_last_name,
-            customer_email,
-            customer_phone,
-            shipping_address_line1,
-            shipping_address_line2,
-            shipping_postal_code,
-            shipping_city,
-            shipping_country,
-            created_at,
-            production_option,
-            production_label,
-            production_percentage,
-            production_price_cents,
-            professional_logo_review_enabled,
-            professional_logo_review_price_cents
-        FROM orders
-        WHERE id = $1
+            o.id,
+            o.status,
+            o.total_price_cents,
+            o.customer_first_name,
+            o.customer_last_name,
+            o.customer_email,
+            o.customer_phone,
+            o.shipping_address_line1,
+            o.shipping_address_line2,
+            o.shipping_postal_code,
+            o.shipping_city,
+            o.shipping_country,
+            o.created_at,
+            o.production_option,
+            o.production_label,
+            o.production_percentage,
+            o.production_price_cents,
+            o.professional_logo_review_enabled,
+            o.professional_logo_review_price_cents,
+            os.shipping_method,
+            os.shipping_label,
+            os.shipping_price_cents,
+            os.total_weight_grams,
+            os.carrier,
+            os.tracking_number,
+            os.tracking_url,
+            os.status AS shipping_status
+        FROM orders o
+        LEFT JOIN order_shipments os
+        ON os.order_id = o.id
+        WHERE o.id = $1
         `,
             [orderId]
         );
@@ -303,6 +323,26 @@ export class OrderRepository {
         );
 
         return result.rows;
+    }
+
+    async updateOrderShipping(input: UpdateOrderShippingInput): Promise<void> {
+        await db.query(
+            `
+        UPDATE order_shipments
+        SET
+            tracking_number = COALESCE($1, tracking_number),
+            tracking_url = COALESCE($2, tracking_url),
+            status = COALESCE($3, status),
+            updated_at = now()
+        WHERE order_id = $4
+        `,
+            [
+                input.trackingNumber ?? null,
+                input.trackingUrl ?? null,
+                input.status ?? null,
+                input.orderId,
+            ]
+        );
     }
 
     //#region Private methods for request handling

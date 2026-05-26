@@ -7,7 +7,7 @@ import {
 } from "../config/order-options.js";
 import { BadRequestError, NotFoundError } from "../errors/http-errors.js";
 import { OrderRepository } from "../repositories/order.repository.js";
-import type { CreateOrderRepositoryOutput, OrderDetailsRow, OrderSummaryRow } from "../types/order.repository.types.js";
+import type { CreateOrderRepositoryOutput, OrderDetailsRow, OrderSummaryRow, UpdateOrderShippingInput } from "../types/order.repository.types.js";
 import type { CreateOrderWithItemsServiceInput } from "../types/order.service.types.js";
 import type { OrderStatus } from "../types/order.types.js";
 
@@ -176,6 +176,51 @@ export class OrderService {
             totalWeightGrams,
             shippingPriceCents,
         };
+    }
+
+    async updateOrderShipping(
+        orderId: number,
+        input: {
+            trackingNumber?: string | null;
+            trackingUrl?: string | null;
+            status?: "pending" | "label_created" | "shipped" | "delivered" | "failed";
+        }
+    ): Promise<OrderDetailsRow> {
+        if (!Number.isInteger(orderId) || orderId <= 0) {
+            throw new BadRequestError("Invalid order id");
+        }
+
+        const existingOrder = await this.orderRepository.findAdminOrderDetailsById(orderId);
+
+        if (!existingOrder) {
+            throw new NotFoundError("Order not found");
+        }
+
+        const updateShippingInput: UpdateOrderShippingInput = {
+            orderId,
+        };
+
+        if (input.trackingNumber !== undefined) {
+            updateShippingInput.trackingNumber = input.trackingNumber;
+        }
+
+        if (input.trackingUrl !== undefined) {
+            updateShippingInput.trackingUrl = input.trackingUrl;
+        }
+
+        if (input.status !== undefined) {
+            updateShippingInput.status = input.status;
+        }
+
+        await this.orderRepository.updateOrderShipping(updateShippingInput);
+
+        const updatedOrder = await this.orderRepository.findAdminOrderDetailsById(orderId);
+
+        if (!updatedOrder) {
+            throw new NotFoundError("Order not found after shipping update");
+        }
+
+        return updatedOrder;
     }
 
     //#region Private methods

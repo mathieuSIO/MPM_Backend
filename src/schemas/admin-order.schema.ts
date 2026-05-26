@@ -11,4 +11,12 @@ export const updateOrderStatusSchema = z.object({
     ]),
 });
 
+export const updateOrderShippingSchema = z.object({
+    trackingNumber: z.string().min(1).nullable().optional(),
+    trackingUrl: z.string().url().nullable().optional(),
+    status: z
+        .enum(["pending", "label_created", "shipped", "delivered", "failed"])
+        .optional(),
+});
+
 export type UpdateOrderStatusInput = z.infer<typeof updateOrderStatusSchema>;

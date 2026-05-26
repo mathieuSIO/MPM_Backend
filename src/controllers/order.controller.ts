@@ -85,4 +85,15 @@ export class OrderController {
         });
     };
 
+    updateAdminOrderShipping = async (req: Request, res: Response): Promise<void> => {
+        const orderId = Number(req.params.orderId);
+
+        const order = await this.orderService.updateOrderShipping(orderId, req.body);
+
+        res.status(200).json({
+            success: true,
+            data: order,
+        });
+    };
+
 }

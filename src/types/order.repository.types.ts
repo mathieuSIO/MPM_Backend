@@ -96,6 +96,15 @@ export type OrderDetailsRow = OrderSummaryRow & {
   shipping_country: string | null;
 
   items: OrderItemDetailsRow[];
+
+  shipping_method: string | null;
+  shipping_label: string | null;
+  shipping_price_cents: number | null;
+  total_weight_grams: number | null;
+  carrier: string | null;
+  tracking_number: string | null;
+  tracking_url: string | null;
+  shipping_status: string | null;
 };
 
 export type UpdateOrderStatusRepositoryInput = {
@@ -113,4 +122,11 @@ export type CreateOrderShipmentInput = {
 export type ProductReferenceWeightRow = {
   product_id: number;
   weight_grams: number | null;
+};
+
+export type UpdateOrderShippingInput = {
+  orderId: number;
+  trackingNumber?: string | null;
+  trackingUrl?: string | null;
+  status?: "pending" | "label_created" | "shipped" | "delivered" | "failed";
 };
