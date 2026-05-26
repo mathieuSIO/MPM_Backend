@@ -27,4 +27,13 @@ export const createOrderSchema = z.object({
     ).min(1),
 });
 
+export const estimateShippingSchema = z.object({
+    items: z.array(
+        z.object({
+            productId: z.number().int().positive(),
+            quantity: z.number().int().positive(),
+        })
+    ).min(1),
+});
+
 export type CreateOrderSchemaInput = z.infer<typeof createOrderSchema>;
