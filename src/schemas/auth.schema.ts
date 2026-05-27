@@ -7,6 +7,9 @@ export const registerSchema = z.object({
     .min(8, { message: "Password must contain at least 8 characters" }),
   firstName: z.string().min(1, { message: "First name is required" }).optional(),
   lastName: z.string().min(1, { message: "Last name is required" }).optional(),
+  turnstileToken: z.string().min(1, {
+    message: "Captcha validation is required",
+  }),
 });
 
 export const loginSchema = z.object({

@@ -8,14 +8,18 @@ import { BadRequestError, UnauthorizedError } from "../errors/http-errors.js";
 
 import type { AuthResponse, AuthUserRow, ForgotPasswordInput, LoginInput, PublicAuthUser, RegisterInput, ResetPasswordInput } from "../types/auth.types.js";
 import { EmailService } from "./email/email.service.js";
+import { TurnstileService } from "./security/turnstile.service.js";
 
 export class AuthService {
     constructor(
         private readonly authRepository = new AuthRepository(),
-        private readonly emailService = new EmailService()
+        private readonly emailService = new EmailService(),
+        private readonly turnstileService = new TurnstileService()
     ) { }
 
     async register(input: RegisterInput): Promise<AuthResponse> {
+        await this.turnstileService.verify(input.turnstileToken);
+
         const existingUser = await this.authRepository.findUserByEmail(input.email);
 
         if (existingUser) {

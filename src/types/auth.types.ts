@@ -61,6 +61,7 @@ export type RegisterInput = {
     password: string;
     firstName?: string;
     lastName?: string;
+    turnstileToken: string;
 };
 
 export type LoginInput = {

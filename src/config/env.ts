@@ -25,4 +25,6 @@ export const env = {
 
   stripeSecretKey: requiredEnv("STRIPE_SECRET_KEY"),
   stripeWebhookSecret: requiredEnv("STRIPE_WEBHOOK_SECRET"),
+
+  turnstileSecretKey: process.env.TURNSTILE_SECRET_KEY ?? "", 
 };
