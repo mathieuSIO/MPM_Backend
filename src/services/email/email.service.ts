@@ -1,4 +1,5 @@
 import { emailConfig } from "../../config/email.js";
+import type { CustomRequestEmailInput } from "../../types/email.types.js";
 
 import type { EmailProvider } from "./email-provider.interface.js";
 
@@ -184,6 +185,67 @@ export class EmailService {
       <p>Ce lien expire dans 1 heure.</p>
       <p>Si vous n'êtes pas à l'origine de cette demande, vous pouvez ignorer cet email.</p>
     `,
+        });
+    }
+
+    async sendCustomRequestAdminEmail(input: CustomRequestEmailInput): Promise<void> {
+        if (!emailConfig.enabled) {
+            return;
+        }
+
+        const adminEmail =
+            emailConfig.adminOrderEmail ?? emailConfig.from.address;
+
+        if (!adminEmail) {
+            return;
+        }
+
+        await this.emailProvider.sendEmail({
+            to: adminEmail,
+
+            subject: "Nouvelle demande personnalisée",
+
+            html: `
+            <h1>Nouvelle demande personnalisée</h1>
+
+            <p>
+                <strong>Email :</strong>
+                ${input.customerEmail}
+            </p>
+
+            <p>
+                <strong>Prénom :</strong>
+                ${input.customerFirstName ?? "-"}
+            </p>
+
+            <p>
+                <strong>Nom :</strong>
+                ${input.customerLastName ?? "-"}
+            </p>
+
+            <p>
+                <strong>Téléphone :</strong>
+                ${input.customerPhone ?? "-"}
+            </p>
+
+            <hr />
+
+            <p>
+                <strong>Demande :</strong>
+            </p>
+
+            <p>
+                ${input.message.replace(/\n/g, "<br />")}
+            </p>
+        `,
+
+            text:
+                `Nouvelle demande personnalisée\n\n` +
+                `Email : ${input.customerEmail}\n` +
+                `Prénom : ${input.customerFirstName ?? "-"}\n` +
+                `Nom : ${input.customerLastName ?? "-"}\n` +
+                `Téléphone : ${input.customerPhone ?? "-"}\n\n` +
+                `Message :\n${input.message}`,
         });
     }
 
