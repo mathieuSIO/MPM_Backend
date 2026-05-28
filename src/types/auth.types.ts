@@ -16,6 +16,10 @@ export type AuthUserRow = {
     created_at: Date;
     updated_at: Date;
 
+    email_verified_at: Date | null;
+    email_verification_token_hash: string | null;
+    email_verification_expires_at: Date | null;
+
     role: UserRole;
 };
 
@@ -32,6 +36,8 @@ export type PublicAuthUser = {
     postalCode: string | null;
     city: string | null;
     country: string | null;
+
+    emailVerifiedAt: Date | null;
 
     role: UserRole;
 };
@@ -64,6 +70,10 @@ export type RegisterInput = {
     turnstileToken: string;
 };
 
+export type RegisterResponse = {
+    message: string;
+};
+
 export type LoginInput = {
     email: string;
     password: string;
@@ -86,4 +96,22 @@ export type PasswordResetUserRow = {
     first_name: string | null;
     password_reset_token_hash: string | null;
     password_reset_expires_at: Date | null;
+};
+
+
+export type VerifyEmailInput = {
+    token: string;
+};
+
+export type ResendVerificationEmailInput = {
+    email: string;
+};
+
+export type EmailVerificationUserRow = {
+    id: number;
+    email: string;
+    first_name: string | null;
+    email_verified_at: Date | null;
+    email_verification_token_hash: string | null;
+    email_verification_expires_at: Date | null;
 };

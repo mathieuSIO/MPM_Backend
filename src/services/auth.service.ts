@@ -6,7 +6,7 @@ import { AuthRepository } from "../repositories/auth.repository.js";
 import { env } from "../config/env.js";
 import { BadRequestError, UnauthorizedError } from "../errors/http-errors.js";
 
-import type { AuthResponse, AuthUserRow, ForgotPasswordInput, LoginInput, PublicAuthUser, RegisterInput, ResetPasswordInput } from "../types/auth.types.js";
+import type { AuthResponse, AuthUserRow, ForgotPasswordInput, LoginInput, PublicAuthUser, RegisterInput, RegisterResponse, ResendVerificationEmailInput, ResetPasswordInput, VerifyEmailInput } from "../types/auth.types.js";
 import { EmailService } from "./email/email.service.js";
 import { TurnstileService } from "./security/turnstile.service.js";
 
@@ -17,7 +17,7 @@ export class AuthService {
         private readonly turnstileService = new TurnstileService()
     ) { }
 
-    async register(input: RegisterInput): Promise<AuthResponse> {
+    async register(input: RegisterInput): Promise<RegisterResponse> {
         await this.turnstileService.verify(input.turnstileToken);
 
         const existingUser = await this.authRepository.findUserByEmail(input.email);
@@ -35,6 +35,8 @@ export class AuthService {
             lastName: input.lastName ?? null,
         });
 
+        await this.sendEmailVerification(user);
+
         try {
             await this.emailService.sendAccountCreatedEmail({
                 email: user.email,
@@ -47,11 +49,8 @@ export class AuthService {
             );
         }
 
-        const publicUser = this.toPublicUser(user);
-
         return {
-            user: publicUser,
-            token: this.generateToken(publicUser.id, publicUser.role),
+            message: "Account created successfully. Please verify your email before logging in.",
         };
     }
 
@@ -66,6 +65,12 @@ export class AuthService {
 
         if (!isValid) {
             throw new UnauthorizedError("Invalid credentials");
+        }
+
+        if (!user.email_verified_at) {
+            throw new UnauthorizedError(
+                "Please verify your email before logging in"
+            );
         }
 
         const publicUser = this.toPublicUser(user);
@@ -129,12 +134,48 @@ export class AuthService {
         });
     }
 
+    async verifyEmail(input: VerifyEmailInput): Promise<void> {
+        const tokenHash = this.hashEmailVerificationToken(input.token);
+
+        const user =
+            await this.authRepository.findUserByEmailVerificationTokenHash(tokenHash);
+
+        if (!user || !user.email_verification_expires_at) {
+            throw new BadRequestError("Invalid or expired verification token");
+        }
+
+        if (user.email_verified_at) {
+            return;
+        }
+
+        if (user.email_verification_expires_at.getTime() < Date.now()) {
+            throw new BadRequestError("Invalid or expired verification token");
+        }
+
+        await this.authRepository.markEmailAsVerified(user.id);
+    }
+
+    async resendVerificationEmail(input: ResendVerificationEmailInput): Promise<void> {
+        const user = await this.authRepository.findUserByEmail(input.email);
+
+        if (!user) {
+            return;
+        }
+
+        if (user.email_verified_at) {
+            return;
+        }
+
+        await this.sendEmailVerification(user);
+    }
+
     //#region Private methods
 
     private toPublicUser(user: AuthUserRow): PublicAuthUser {
         return {
             id: user.id,
             email: user.email,
+            emailVerifiedAt: user.email_verified_at,
             role: user.role,
             firstName: user.first_name,
             lastName: user.last_name,
@@ -156,6 +197,35 @@ export class AuthService {
     }
 
     private hashPasswordResetToken(token: string): string {
+        return crypto.createHash("sha256").update(token).digest("hex");
+    }
+
+    private async sendEmailVerification(user: AuthUserRow): Promise<void> {
+        const verificationToken = crypto.randomBytes(32).toString("hex");
+        const tokenHash = this.hashEmailVerificationToken(verificationToken);
+
+        const expiresAt = new Date(Date.now() + 24 * 60 * 60 * 1000);
+
+        await this.authRepository.saveEmailVerificationToken({
+            userId: user.id,
+            tokenHash,
+            expiresAt,
+        });
+
+        const verificationUrl = `${env.frontendOrigin}/verify-email?token=${verificationToken}`;
+
+        try {
+            await this.emailService.sendEmailVerificationEmail({
+                email: user.email,
+                firstName: user.first_name,
+                verificationUrl,
+            });
+        } catch (error) {
+            console.error("Failed to send email verification email:", error);
+        }
+    }
+
+    private hashEmailVerificationToken(token: string): string {
         return crypto.createHash("sha256").update(token).digest("hex");
     }
 

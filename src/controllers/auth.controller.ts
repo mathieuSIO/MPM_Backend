@@ -40,4 +40,28 @@ export class AuthController {
             message: "Password has been reset successfully.",
         });
     };
+
+    verifyEmail = async (req: Request, res: Response): Promise<void> => {
+        await this.authService.verifyEmail({
+            token: String(req.query.token ?? ""),
+        });
+
+        res.status(200).json({
+            success: true,
+            message: "Email verified successfully.",
+        });
+    };
+
+    resendVerificationEmail = async (
+        req: Request,
+        res: Response
+    ): Promise<void> => {
+        await this.authService.resendVerificationEmail(req.body);
+
+        res.status(200).json({
+            success: true,
+            message:
+                "If an account exists and is not verified, a verification email has been sent.",
+        });
+    };
 }

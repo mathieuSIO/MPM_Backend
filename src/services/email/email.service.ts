@@ -1,5 +1,5 @@
 import { emailConfig } from "../../config/email.js";
-import type { CustomRequestEmailInput } from "../../types/email.types.js";
+import type { CustomRequestEmailInput, EmailVerificationEmailInput } from "../../types/email.types.js";
 
 import type { EmailProvider } from "./email-provider.interface.js";
 
@@ -246,6 +246,47 @@ export class EmailService {
                 `Nom : ${input.customerLastName ?? "-"}\n` +
                 `Téléphone : ${input.customerPhone ?? "-"}\n\n` +
                 `Message :\n${input.message}`,
+        });
+    }
+
+    async sendEmailVerificationEmail(input: EmailVerificationEmailInput): Promise<void> {
+        if (!emailConfig.enabled) {
+            return;
+        }
+
+        await this.emailProvider.sendEmail({
+            to: input.email,
+            subject: "Confirmez votre adresse email",
+            html: `
+            <h1>Confirmez votre adresse email</h1>
+
+            <p>Bonjour${input.firstName ? ` ${input.firstName}` : ""},</p>
+
+            <p>
+                Merci d’avoir créé un compte sur Mon Petit Matos.
+                Pour confirmer votre adresse email, cliquez sur le lien ci-dessous :
+            </p>
+
+            <p>
+                <a href="${input.verificationUrl}">
+                    Confirmer mon adresse email
+                </a>
+            </p>
+
+            <p>Ce lien expire dans 24 heures.</p>
+
+            <p>
+                Si vous n'êtes pas à l'origine de cette création de compte,
+                vous pouvez ignorer cet email.
+            </p>
+        `,
+            text:
+                `Confirmez votre adresse email\n\n` +
+                `Bonjour${input.firstName ? ` ${input.firstName}` : ""},\n\n` +
+                `Merci d’avoir créé un compte sur Mon Petit Matos.\n` +
+                `Confirmez votre adresse email avec ce lien :\n` +
+                `${input.verificationUrl}\n\n` +
+                `Ce lien expire dans 24 heures.\n`,
         });
     }
 

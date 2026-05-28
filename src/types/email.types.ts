@@ -12,3 +12,9 @@ export type CustomRequestEmailInput = {
   customerPhone: string | null;
   message: string;
 };
+
+export type EmailVerificationEmailInput = {
+  email: string;
+  firstName: string | null;
+  verificationUrl: string;
+};

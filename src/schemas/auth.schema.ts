@@ -27,3 +27,13 @@ export const resetPasswordSchema = z.object({
     .string()
     .min(8, { message: "Password must contain at least 8 characters" }),
 });
+
+export const verifyEmailSchema = z.object({
+  token: z.string().min(32, {
+    message: "Invalid verification token",
+  }),
+});
+
+export const resendVerificationEmailSchema = z.object({
+  email: z.email({ message: "Invalid email address" }).trim().toLowerCase(),
+});
