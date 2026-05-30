@@ -134,7 +134,7 @@ export class OrderRepository {
                 o.professional_logo_review_price_cents,
                 o.promo_code_id,
                 o.promo_code,
-                o.discount_cents
+                o.discount_cents,
                 os.shipping_method,
                 os.shipping_label,
                 os.shipping_price_cents,
