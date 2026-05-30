@@ -14,7 +14,7 @@ export type CreateOrderWithItemsServiceInput = {
         shippingPostalCode?: string | null;
         shippingCity?: string | null;
         shippingCountry?: string | null;
-        
+
         productionOption?: ProductionOption;
         professionalLogoReviewEnabled?: boolean;
     };
@@ -27,6 +27,8 @@ export type CreateOrderWithItemsServiceInput = {
         customization?: OrderItemCustomizationServiceInput | null;
         finalPreviewUrl?: string | null;
     }[];
+
+    promoCode?: string | null;
 };
 
 type OrderItemCustomizationServiceInput = {

@@ -19,6 +19,9 @@ export type CreateOrderRepositoryInput = {
   productionPriceCents: number;
   professionalLogoReviewEnabled: boolean;
   professionalLogoReviewPriceCents: number;
+  promoCodeId?: number | null;
+  promoCode?: string | null;
+  discountCents: number;
 };
 
 export type CreateOrderRepositoryOutput = { id: number };
@@ -73,6 +76,9 @@ export type OrderSummaryRow = {
   production_price_cents: number;
   professional_logo_review_enabled: boolean;
   professional_logo_review_price_cents: number;
+  promo_code_id: number | null;
+  promo_code: string | null;
+  discount_cents: number;
 };
 
 export type OrderItemDetailsRow = {

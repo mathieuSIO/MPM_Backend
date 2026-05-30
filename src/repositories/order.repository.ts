@@ -89,7 +89,11 @@ export class OrderRepository {
                     production_percentage,
                     production_price_cents,
                     professional_logo_review_enabled,
-                    professional_logo_review_price_cents
+                    professional_logo_review_price_cents,
+                    promo_code,
+                    discount_centspromo_code_id,
+                    promo_code,
+                    discount_cents
                 FROM orders 
                 WHERE user_id = $1
                 AND status IN ('paid', 'processing', 'shipped', 'completed', 'cancelled')
@@ -129,6 +133,9 @@ export class OrderRepository {
                 o.production_price_cents,
                 o.professional_logo_review_enabled,
                 o.professional_logo_review_price_cents,
+                o.promo_code_id,
+                o.promo_code,
+                o.discount_cents
                 os.shipping_method,
                 os.shipping_label,
                 os.shipping_price_cents,
@@ -191,7 +198,10 @@ export class OrderRepository {
             production_percentage,
             production_price_cents,
             professional_logo_review_enabled,
-            professional_logo_review_price_cents
+            professional_logo_review_price_cents,
+            promo_code_id,
+            promo_code,
+            discount_cents
         FROM orders
         ORDER BY created_at DESC
         `
@@ -223,6 +233,9 @@ export class OrderRepository {
             o.production_price_cents,
             o.professional_logo_review_enabled,
             o.professional_logo_review_price_cents,
+            o.promo_code_id,
+            o.promo_code,
+            o.discount_cents,
             os.shipping_method,
             os.shipping_label,
             os.shipping_price_cents,
@@ -296,7 +309,10 @@ export class OrderRepository {
             production_percentage,
             production_price_cents,
             professional_logo_review_enabled,
-            professional_logo_review_price_cents
+            professional_logo_review_price_cents,
+            promo_code_id,
+            promo_code,
+            discount_cents
         FROM orders
         WHERE id = $1
         `,
@@ -365,9 +381,12 @@ export class OrderRepository {
                     production_percentage,
                     production_price_cents,
                     professional_logo_review_enabled,
-                    professional_logo_review_price_cents
+                    professional_logo_review_price_cents,
+                    promo_code_id,
+                    promo_code,
+                    discount_cents
                 )
-                VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17)
+                VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17, $18, $19, $20)
                 RETURNING id`,
             [
                 input.userId ?? null,
@@ -387,6 +406,9 @@ export class OrderRepository {
                 input.productionPriceCents,
                 input.professionalLogoReviewEnabled,
                 input.professionalLogoReviewPriceCents,
+                input.promoCodeId ?? null,
+                input.promoCode ?? null,
+                input.discountCents,
             ]
         );
 

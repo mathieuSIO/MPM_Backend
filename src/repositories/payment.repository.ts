@@ -3,6 +3,7 @@ import { db } from "../db/connection.js";
 import type {
     CreatePaymentRepositoryInput,
     CreatePaymentRepositoryOutput,
+    PaymentRow,
     UpdatePaymentStatusBySessionInput,
 } from "../types/payment.types.js";
 
@@ -67,10 +68,10 @@ export class PaymentRepository {
 
     async findPaymentByCheckoutSessionId(
         checkoutSessionId: string
-    ): Promise<{ order_id: number } | null> {
-        const result = await db.query<{ order_id: number }>(
+    ): Promise<PaymentRow | null> {
+        const result = await db.query<PaymentRow>(
             `
-        SELECT order_id
+        SELECT id, order_id, status
         FROM payments
         WHERE provider_checkout_session_id = $1
         `,

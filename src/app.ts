@@ -14,6 +14,8 @@ import paymentRouter from "./routes/payment.router.js";
 import paymentWebhookRouter from "./routes/payment-webhook.router.js";
 import adminCustomRequestRouter from "./routes/admin-custom-request.router.js";
 import customRequestRouter from "./routes/custom-request.router.js";
+import adminPromoCodeRouter from "./routes/admin-promo-code.router.js";
+import promoCodeRouter from "./routes/promo-code.router.js";
 
 const uploadsDirectory = path.resolve(process.cwd(), "uploads");
 
@@ -31,12 +33,14 @@ app.use("/api/orders", orderRouter);
 app.use("/api/admin/orders", adminOrderRouter);
 app.use("/api/me", meRouter);
 app.use("/api/auth", authRouter);
-app.use("/uploads", express.static(uploadsDirectory));  
+app.use("/uploads", express.static(uploadsDirectory));
 app.use("/api/products", productRouter);
 app.use("/api/uploads", uploadRouter);
 app.use("/api/payments", paymentRouter);
 app.use("/api/custom-requests", customRequestRouter);
 app.use("/api/admin/custom-requests", adminCustomRequestRouter);
+app.use("/api/promo-codes", promoCodeRouter);
+app.use("/api/admin/promo-codes", adminPromoCodeRouter);
 
 //Check if server life is good
 app.get("/api/health", (_req, res) => {

@@ -24,3 +24,9 @@ export type UpdatePaymentStatusBySessionInput = {
     status: PaymentStatus;
     providerPaymentId?: string | null;
 };
+
+export type PaymentRow = {
+    id: number;
+    order_id: number;
+    status: "pending" | "paid" | "failed" | "cancelled" | "refunded";
+};

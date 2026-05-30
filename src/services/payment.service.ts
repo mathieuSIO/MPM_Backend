@@ -7,12 +7,14 @@ import { PaymentRepository } from "../repositories/payment.repository.js";
 
 import { env } from "../config/env.js";
 import { EmailService } from "./email/email.service.js";
+import { PromoCodeRepository } from "../repositories/promo-code.repository.js";
 
 export class PaymentService {
     constructor(
         private readonly orderRepository = new OrderRepository(),
         private readonly paymentRepository = new PaymentRepository(),
         private readonly emailService = new EmailService(),
+        private readonly promoCodeRepository = new PromoCodeRepository(),
     ) { }
 
     async createCheckoutSession(orderId: number): Promise<string> {
@@ -83,6 +85,10 @@ export class PaymentService {
             return;
         }
 
+        if (payment.status === "paid") {
+            return;
+        }
+
         await this.paymentRepository.updatePaymentStatusByCheckoutSession({
             providerCheckoutSessionId: checkoutSessionId,
             providerPaymentId: paymentIntentId,
@@ -100,6 +106,10 @@ export class PaymentService {
 
         if (!order) {
             throw new NotFoundError("Order not found");
+        }
+
+        if (order.promo_code_id !== null) {
+            await this.promoCodeRepository.incrementUsageCount(order.promo_code_id);
         }
 
         try {

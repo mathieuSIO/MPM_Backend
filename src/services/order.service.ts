@@ -10,9 +10,13 @@ import { OrderRepository } from "../repositories/order.repository.js";
 import type { CreateOrderRepositoryOutput, OrderDetailsRow, OrderSummaryRow, UpdateOrderShippingInput } from "../types/order.repository.types.js";
 import type { CreateOrderWithItemsServiceInput } from "../types/order.service.types.js";
 import type { OrderStatus } from "../types/order.types.js";
+import { PromoCodeService } from "./promo-code.service.js";
 
 export class OrderService {
-    constructor(private readonly orderRepository = new OrderRepository()) { }
+    constructor(
+        private readonly orderRepository = new OrderRepository(),
+        private readonly promoCodeService = new PromoCodeService()
+    ) { }
 
     async getUserOrders(userId: number): Promise<OrderSummaryRow[]> {
         if (!Number.isInteger(userId) || userId <= 0) {
@@ -43,11 +47,28 @@ export class OrderService {
         const shippingPriceCents = getShippingPriceCents(totalWeightGrams);
         const shippingOption = SHIPPING_OPTIONS[DEFAULT_SHIPPING_METHOD];
 
-        const totalPriceCents =
+        const totalBeforeDiscountCents =
             itemsTotalPriceCents +
             productionPriceCents +
             professionalLogoReviewPriceCents +
             shippingPriceCents;
+
+        let promoCodeId: number | null = null;
+        let promoCode: string | null = null;
+        let discountCents = 0;
+
+        if (input.promoCode) {
+            const promoResult = await this.promoCodeService.validatePromoCode({
+                code: input.promoCode,
+                orderSubtotalCents: totalBeforeDiscountCents,
+            });
+
+            promoCodeId = promoResult.id;
+            promoCode = promoResult.code;
+            discountCents = promoResult.discountCents;
+        }
+
+        const totalPriceCents = totalBeforeDiscountCents - discountCents;
 
         return this.orderRepository.createOrderWithItems({
             order: {
@@ -59,7 +80,10 @@ export class OrderService {
                 productionPercentage: productionConfig.percentage,
                 productionPriceCents,
                 professionalLogoReviewEnabled,
-                professionalLogoReviewPriceCents
+                professionalLogoReviewPriceCents,
+                promoCodeId,
+                promoCode,
+                discountCents,
             },
             shipping: {
                 method: DEFAULT_SHIPPING_METHOD,
