@@ -25,6 +25,7 @@ export const createOrderSchema = z.object({
             finalPreviewUrl: z.string().url().nullable().optional(),
         })
     ).min(1),
+    promoCode: z.string().min(1).nullable().optional(),
 });
 
 export const estimateShippingSchema = z.object({

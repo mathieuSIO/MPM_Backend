@@ -28,6 +28,8 @@ export class OrderService {
     async createOrderWithItems(input: CreateOrderWithItemsServiceInput): Promise<CreateOrderRepositoryOutput> {
         this.validateCreateOrderWithItemsInput(input);
 
+        console.log("PROMO CODE RECEIVED:", input.promoCode);
+
         const itemsTotalPriceCents = this.calculateItemsTotalPriceCents(input);
         const productionOption = input.order.productionOption ?? "standard";
         const productionConfig = PRODUCTION_OPTIONS[productionOption];
@@ -60,7 +62,7 @@ export class OrderService {
         if (input.promoCode) {
             const promoResult = await this.promoCodeService.validatePromoCode({
                 code: input.promoCode,
-                orderSubtotalCents: totalBeforeDiscountCents,
+                orderSubtotalCents: itemsTotalPriceCents,
             });
 
             promoCodeId = promoResult.id;
