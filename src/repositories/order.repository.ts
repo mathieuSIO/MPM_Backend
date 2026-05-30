@@ -90,8 +90,7 @@ export class OrderRepository {
                     production_price_cents,
                     professional_logo_review_enabled,
                     professional_logo_review_price_cents,
-                    promo_code,
-                    discount_centspromo_code_id,
+                    promo_code_id,
                     promo_code,
                     discount_cents
                 FROM orders 
