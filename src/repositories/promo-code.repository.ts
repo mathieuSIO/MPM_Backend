@@ -90,4 +90,22 @@ export class PromoCodeRepository {
             [promoCodeId]
         );
     }
+
+    async updateStatus(
+        promoCodeId: number,
+        isActive: boolean
+    ): Promise<boolean> {
+        const result = await db.query(
+            `
+        UPDATE promo_codes
+        SET
+            is_active = $2,
+            updated_at = now()
+        WHERE id = $1
+        `,
+            [promoCodeId, isActive]
+        );
+
+        return (result.rowCount ?? 0) > 0;
+    }
 }

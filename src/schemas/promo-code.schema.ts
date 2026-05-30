@@ -16,4 +16,8 @@ export const createPromoCodeSchema = z.object({
     isActive: z.boolean().optional(),
 });
 
+export const updatePromoCodeStatusSchema = z.object({
+    isActive: z.boolean(),
+});
+
 export const updatePromoCodeSchema = createPromoCodeSchema.partial();

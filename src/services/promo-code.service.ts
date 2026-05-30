@@ -128,4 +128,21 @@ export class PromoCodeService {
             updatedAt: promoCode.updated_at,
         };
     }
+
+    async updateAdminPromoCodeStatus(
+        promoCodeId: number,
+        isActive: boolean
+    ): Promise<void> {
+        const updated =
+            await this.promoCodeRepository.updateStatus(
+                promoCodeId,
+                isActive
+            );
+
+        if (!updated) {
+            throw new NotFoundError(
+                "Promo code not found"
+            );
+        }
+    }
 }

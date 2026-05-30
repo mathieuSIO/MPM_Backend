@@ -48,4 +48,22 @@ export class PromoCodeController {
             data: result,
         });
     };
+
+    updateAdminPromoCodeStatus = async (
+        req: Request,
+        res: Response
+    ): Promise<void> => {
+        const promoCodeId = Number(
+            req.params.promoCodeId
+        );
+
+        await this.promoCodeService.updateAdminPromoCodeStatus(
+            promoCodeId,
+            req.body.isActive
+        );
+
+        res.status(200).json({
+            success: true,
+        });
+    };
 }
