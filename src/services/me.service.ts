@@ -38,7 +38,7 @@ export class MeService {
         const user = await this.meRepository.findPasswordHashById(userId);
 
         if (!user || !user.password_hash) {
-            throw new UnauthorizedError("Invalid credentials");
+            throw new UnauthorizedError("Mail ou mot de passe incorrect");
         }
 
         const isValid = await bcrypt.compare(
@@ -47,7 +47,7 @@ export class MeService {
         );
 
         if (!isValid) {
-            throw new UnauthorizedError("Invalid credentials");
+            throw new UnauthorizedError("Mail ou mot de passe incorrect");
         }
 
         const passwordHash = await bcrypt.hash(input.newPassword, 10);

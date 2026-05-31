@@ -58,13 +58,13 @@ export class AuthService {
         const user = await this.authRepository.findUserByEmail(input.email);
 
         if (!user || !user.password_hash) {
-            throw new UnauthorizedError("Invalid credentials");
+            throw new UnauthorizedError("Mail ou mot de passe incorrect");
         }
 
         const isValid = await bcrypt.compare(input.password, user.password_hash);
 
         if (!isValid) {
-            throw new UnauthorizedError("Invalid credentials");
+            throw new UnauthorizedError("Mail ou mot de passe incorrect");
         }
 
         if (!user.email_verified_at) {
