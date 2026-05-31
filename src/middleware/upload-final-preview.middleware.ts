@@ -1,6 +1,6 @@
 import multer from "multer";
 import { AppError } from "../errors/app-error.js";
-const maxFinalPreviewFileSizeInBytes = 5 * 1024 * 1024;
+const maxFinalPreviewFileSizeInBytes = 50 * 1024 * 1024;
 
 const allowedMimeTypes = new Set(["image/png", "image/jpeg"]);
 
