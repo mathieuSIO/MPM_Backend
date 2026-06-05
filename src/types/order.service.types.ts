@@ -20,7 +20,9 @@ export type CreateOrderWithItemsServiceInput = {
     };
 
     items: {
-        productId: number;
+        itemType?: "studio" | "shop";
+        productId?: number | null;
+        shopProductId?: number | null;
         productName: string;
         quantity: number;
         unitPriceCents: number;

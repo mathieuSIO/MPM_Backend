@@ -17,7 +17,9 @@ export const createOrderSchema = z.object({
     }),
     items: z.array(
         z.object({
-            productId: z.number().int().positive(),
+            itemType: z.enum(["studio", "shop"]).optional(),
+            productId: z.number().int().positive().nullable().optional(),
+            shopProductId: z.number().int().positive().nullable().optional(),
             productName: z.string().min(1),
             quantity: z.number().int().positive(),
             unitPriceCents: z.number().int().positive(),
@@ -31,7 +33,9 @@ export const createOrderSchema = z.object({
 export const estimateShippingSchema = z.object({
     items: z.array(
         z.object({
-            productId: z.number().int().positive(),
+            itemType: z.enum(["studio", "shop"]).optional(),
+            productId: z.number().int().positive().nullable().optional(),
+            shopProductId: z.number().int().positive().nullable().optional(),
             quantity: z.number().int().positive(),
         })
     ).min(1),

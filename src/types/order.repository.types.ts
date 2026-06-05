@@ -1,6 +1,8 @@
 import type { ProductionOption, ShippingMethod } from "../config/order-options.js";
 import type { OrderStatus } from "./order.types.js";
 
+export type OrderItemType = "studio" | "shop";
+
 export type CreateOrderRepositoryInput = {
   userId?: number | null;
   totalPriceCents: number;
@@ -27,13 +29,17 @@ export type CreateOrderRepositoryInput = {
 export type CreateOrderRepositoryOutput = { id: number };
 
 export type CreateOrderItemsInput = {
-  productId: number;
+  itemType: OrderItemType;
+
+  productId?: number | null;
+  shopProductId?: number | null;
+
   productName: string;
   quantity: number;
   unitPriceCents: number;
   customization?: OrderItemCustomization | null;
   finalPreviewUrl?: string | null;
-}
+};
 
 export type CreateOrderWithItemsInput = {
   order: CreateOrderRepositoryInput;
@@ -135,4 +141,9 @@ export type UpdateOrderShippingInput = {
   trackingNumber?: string | null;
   trackingUrl?: string | null;
   status?: "pending" | "label_created" | "shipped" | "delivered" | "failed";
+};
+
+export type ShopProductWeightRow = {
+  id: number;
+  weight_grams: number;
 };

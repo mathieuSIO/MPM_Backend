@@ -1,6 +1,6 @@
 import type { PoolClient } from "pg";
 import { db } from "../db/connection.js";
-import type { CreateOrderRepositoryInput, CreateOrderRepositoryOutput, CreateOrderWithItemsInput, OrderDetailsRow, OrderItemDetailsRow, OrderSummaryRow, ProductReferenceWeightRow, UpdateOrderShippingInput } from "../types/order.repository.types.js";
+import type { CreateOrderRepositoryInput, CreateOrderRepositoryOutput, CreateOrderWithItemsInput, OrderDetailsRow, OrderItemDetailsRow, OrderSummaryRow, ProductReferenceWeightRow, ShopProductWeightRow, UpdateOrderShippingInput } from "../types/order.repository.types.js";
 import type { OrderStatus } from "../types/order.types.js";
 
 export class OrderRepository {
@@ -359,6 +359,28 @@ export class OrderRepository {
             ]
         );
     }
+
+    async findShopProductWeightsByIds(
+        shopProductIds: number[]
+    ): Promise<ShopProductWeightRow[]> {
+        if (shopProductIds.length === 0) {
+            return [];
+        }
+
+        const result = await db.query<ShopProductWeightRow>(
+            `
+        SELECT
+            id,
+            weight_grams
+        FROM shop_products
+        WHERE id = ANY($1::int[])
+        `,
+            [shopProductIds]
+        );
+
+        return result.rows;
+    }
+
 
     //#region Private methods for request handling
     private async insertOrder(client: PoolClient, input: CreateOrderRepositoryInput): Promise<{ id: number }> {

@@ -25,6 +25,8 @@ export class OrderService {
         return this.orderRepository.findOrdersByUserId(userId);
     }
 
+
+
     async createOrderWithItems(input: CreateOrderWithItemsServiceInput): Promise<CreateOrderRepositoryOutput> {
         this.validateCreateOrderWithItemsInput(input);
 
@@ -72,6 +74,21 @@ export class OrderService {
 
         const totalPriceCents = totalBeforeDiscountCents - discountCents;
 
+        const repositoryItems = input.items.map((item) => {
+            const itemType = item.itemType ?? "studio";
+
+            return {
+                itemType,
+                productId: itemType === "studio" ? item.productId ?? null : null,
+                shopProductId: itemType === "shop" ? item.shopProductId ?? null : null,
+                productName: item.productName,
+                quantity: item.quantity,
+                unitPriceCents: item.unitPriceCents,
+                customization: item.customization ?? null,
+                finalPreviewUrl: item.finalPreviewUrl ?? null,
+            };
+        });
+
         return this.orderRepository.createOrderWithItems({
             order: {
                 ...input.order,
@@ -93,7 +110,7 @@ export class OrderService {
                 priceCents: shippingPriceCents,
                 totalWeightGrams,
             },
-            items: input.items,
+            items: repositoryItems,
         });
     }
 
@@ -249,14 +266,17 @@ export class OrderService {
         return updatedOrder;
     }
 
+
+
     //#region Private methods
-    private async calculateTotalWeightGrams(
-        input: CreateOrderWithItemsServiceInput
-    ): Promise<number> {
-        const productIds = [...new Set(input.items.map((item) => item.productId))];
+    private async calculateTotalWeightGrams(input: CreateOrderWithItemsServiceInput): Promise<number> {
+        const studioProductIds = input.items
+            .filter((item) => (item.itemType ?? "studio") === "studio")
+            .map((item) => item.productId)
+            .filter((productId): productId is number => typeof productId === "number");
 
         const weightRows =
-            await this.orderRepository.findProductReferenceWeightsByProductIds(productIds);
+            await this.orderRepository.findProductReferenceWeightsByProductIds(studioProductIds);
 
         const weightByProductId = new Map(
             weightRows.map((row) => [row.product_id, row.weight_grams])
@@ -264,13 +284,50 @@ export class OrderService {
 
         let totalWeightGrams = 0;
 
+        const shopProductIds = input.items
+            .filter((item) => (item.itemType ?? "studio") === "shop")
+            .map((item) => item.shopProductId)
+            .filter(
+                (shopProductId): shopProductId is number =>
+                    typeof shopProductId === "number"
+            );
+
+        const shopProductWeights =
+            await this.orderRepository.findShopProductWeightsByIds(shopProductIds);
+
+        const shopWeightById = new Map(
+            shopProductWeights.map((shopProductWeight) => [
+                shopProductWeight.id,
+                shopProductWeight.weight_grams,
+            ])
+        );
+
         for (const item of input.items) {
-            const weightGrams = weightByProductId.get(item.productId);
+            const itemType = item.itemType ?? "studio";
+
+            if (itemType === "studio") {
+                if (typeof item.productId !== "number") {
+                    throw new BadRequestError("Studio item productId is required");
+                }
+
+                const weightGrams = weightByProductId.get(item.productId);
+
+                if (!weightGrams) {
+                    throw new BadRequestError("Product weight is missing");
+                }
+
+                totalWeightGrams += weightGrams * item.quantity;
+                continue;
+            }
+
+            if (typeof item.shopProductId !== "number") {
+                throw new BadRequestError("Shop item shopProductId is required");
+            }
+
+            const weightGrams = shopWeightById.get(item.shopProductId);
 
             if (!weightGrams) {
-                throw new BadRequestError(
-                    `Missing product weight for product id ${item.productId}`
-                );
+                throw new BadRequestError("Shop product weight is missing");
             }
 
             totalWeightGrams += weightGrams * item.quantity;
