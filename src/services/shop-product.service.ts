@@ -35,6 +35,7 @@ export class ShopProductService {
         description?: string | null;
         priceCents: number;
         imageUrl?: string | null;
+        imageStorageKey?: string | null;
         isActive?: boolean;
     }) {
         return this.repository.create({
@@ -43,6 +44,7 @@ export class ShopProductService {
             description: input.description ?? null,
             priceCents: input.priceCents,
             imageUrl: input.imageUrl ?? null,
+            imageStorageKey: input.imageStorageKey ?? null,
             isActive: input.isActive ?? true,
         });
     }
@@ -55,6 +57,7 @@ export class ShopProductService {
             description?: string | null;
             priceCents?: number;
             imageUrl?: string | null;
+            imageStorageKey?: string | null;
             isActive?: boolean;
         }
     ) {

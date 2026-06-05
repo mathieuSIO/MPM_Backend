@@ -12,6 +12,7 @@ export class ShopProductRepository {
                 description,
                 price_cents,
                 image_url,
+                image_storage_key,
                 is_active,
                 created_at,
                 updated_at
@@ -34,6 +35,7 @@ export class ShopProductRepository {
                 description,
                 price_cents,
                 image_url,
+                image_storage_key,
                 is_active,
                 created_at,
                 updated_at
@@ -66,6 +68,7 @@ export class ShopProductRepository {
         description?: string | null;
         priceCents: number;
         imageUrl?: string | null;
+        imageStorageKey?: string | null;
         isActive?: boolean;
     }): Promise<ShopProductRow> {
         const result = await db.query<ShopProductRow>(
@@ -76,9 +79,10 @@ export class ShopProductRepository {
             description,
             price_cents,
             image_url,
+            image_storage_key,
             is_active
         )
-        VALUES ($1, $2, $3, $4, $5, $6)
+        VALUES ($1, $2, $3, $4, $5, $6, $7)
         RETURNING *
         `,
             [
@@ -87,6 +91,7 @@ export class ShopProductRepository {
                 input.description ?? null,
                 input.priceCents,
                 input.imageUrl ?? null,
+                input.imageStorageKey ?? null,
                 input.isActive ?? true,
             ]
         );
@@ -102,6 +107,7 @@ export class ShopProductRepository {
             description?: string | null;
             priceCents?: number;
             imageUrl?: string | null;
+            imageStorageKey?: string | null;
             isActive?: boolean;
         }
     ): Promise<ShopProductRow | null> {
@@ -114,9 +120,10 @@ export class ShopProductRepository {
             description = COALESCE($3, description),
             price_cents = COALESCE($4, price_cents),
             image_url = COALESCE($5, image_url),
-            is_active = COALESCE($6, is_active),
+            image_storage_key = COALESCE($6, image_storage_key),
+            is_active = COALESCE($7, is_active),
             updated_at = now()
-        WHERE id = $7
+        WHERE id = $8
         RETURNING *
         `,
             [
@@ -125,6 +132,7 @@ export class ShopProductRepository {
                 input.description ?? null,
                 input.priceCents ?? null,
                 input.imageUrl ?? null,
+                input.imageStorageKey ?? null,
                 input.isActive ?? null,
                 productId,
             ]

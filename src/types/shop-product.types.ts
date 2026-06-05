@@ -5,6 +5,7 @@ export type ShopProductRow = {
     description: string | null;
     price_cents: number;
     image_url: string | null;
+    image_storage_key: string | null;
     is_active: boolean;
     created_at: Date;
     updated_at: Date;
@@ -17,4 +18,5 @@ export type ShopProduct = {
     description: string | null;
     priceCents: number;
     imageUrl: string | null;
+    imageStorageKey: string | null;
 };
