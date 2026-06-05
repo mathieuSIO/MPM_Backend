@@ -32,4 +32,69 @@ export class ShopProductController {
             data: product,
         });
     };
+
+    getAdminProducts = async (
+        _req: Request,
+        res: Response
+    ): Promise<void> => {
+        const products = await this.service.getAdminProducts();
+
+        res.status(200).json({
+            success: true,
+            data: products,
+        });
+    };
+
+    createAdminProduct = async (
+        req: Request,
+        res: Response
+    ): Promise<void> => {
+        const product = await this.service.createAdminProduct(req.body);
+
+        res.status(201).json({
+            success: true,
+            data: product,
+        });
+    };
+
+    updateAdminProduct = async (
+        req: Request,
+        res: Response
+    ): Promise<void> => {
+        const productId = Number(req.params.productId);
+
+        const product = await this.service.updateAdminProduct(
+            productId,
+            req.body
+        );
+
+        res.status(200).json({
+            success: true,
+            data: product,
+        });
+    };
+
+    updateAdminProductStatus = async (req: Request, res: Response): Promise<void> => {
+        const productId = Number(req.params.productId);
+
+        const product = await this.service.updateAdminProductStatus(
+            productId,
+            req.body.isActive
+        );
+
+        res.status(200).json({
+            success: true,
+            data: product,
+        });
+    };
+
+    uploadAdminProductImage = async (req: Request, res: Response): Promise<void> => {
+        const result = await this.service.uploadAdminProductImage(req.file);
+
+        res.status(201).json({
+            success: true,
+            data: result,
+        });
+    };
+
 }
