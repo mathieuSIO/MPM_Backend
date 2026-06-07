@@ -1,5 +1,5 @@
 import { db } from "../db/connection.js";
-import type { ShopProductRow } from "../types/shop-product.types.js";
+import type { ShopProductRow, ShopProductVariantRow } from "../types/shop-product.types.js";
 
 export class ShopProductRepository {
     async findAllActive(): Promise<ShopProductRow[]> {
@@ -155,5 +155,32 @@ export class ShopProductRepository {
         );
 
         return result.rows[0] ?? null;
+    }
+
+    async findVariantsByProductId(shopProductId: number): Promise<ShopProductVariantRow[]> {
+        const result =
+            await db.query<ShopProductVariantRow>(
+                `
+            SELECT
+                id,
+                shop_product_id,
+                size_label,
+                color_name,
+                color_hex,
+                sku,
+                price_cents,
+                stock_quantity,
+                is_active,
+                created_at,
+                updated_at
+            FROM shop_product_variants
+            WHERE shop_product_id = $1
+            AND is_active = true
+            ORDER BY color_name, size_label
+            `,
+                [shopProductId]
+            );
+
+        return result.rows;
     }
 }

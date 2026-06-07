@@ -13,18 +13,28 @@ export class ShopProductService {
     }
 
     async getProduct(slug: string) {
-        const product =
-            await this.repository.findBySlug(slug);
+        const product = await this.repository.findBySlug(slug);
 
         if (!product) {
-            throw new NotFoundError(
-                "Shop product not found"
-            );
+            throw new NotFoundError("Shop product not found");
         }
 
-        return product;
-    }
+        const variants = await this.repository.findVariantsByProductId(product.id);
 
+        return {
+            ...product,
+            variants: variants.map((variant) => ({
+                id: variant.id,
+                sizeLabel: variant.size_label,
+                colorName: variant.color_name,
+                colorHex: variant.color_hex,
+                sku: variant.sku,
+                priceCents: variant.price_cents,
+                stockQuantity: variant.stock_quantity,
+                isActive: variant.is_active,
+            })),
+        };
+    }
     async getAdminProducts() {
         return this.repository.findAllAdmin();
     }
