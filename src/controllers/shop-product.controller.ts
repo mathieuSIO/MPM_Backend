@@ -97,4 +97,61 @@ export class ShopProductController {
         });
     };
 
+    getAdminProductVariants = async (req: Request, res: Response): Promise<void> => {
+        const productId = Number(req.params.productId);
+
+        const variants = await this.service.getAdminProductVariants(productId);
+
+        res.status(200).json({
+            success: true,
+            data: variants,
+        });
+    };
+
+    createAdminProductVariant = async (req: Request, res: Response): Promise<void> => {
+        const productId = Number(req.params.productId);
+
+        const variant = await this.service.createAdminProductVariant(
+            productId,
+            req.body
+        );
+
+        res.status(201).json({
+            success: true,
+            data: variant,
+        });
+    };
+
+    updateAdminProductVariant = async (req: Request, res: Response): Promise<void> => {
+        const productId = Number(req.params.productId);
+        const variantId = Number(req.params.variantId);
+
+        const variant = await this.service.updateAdminProductVariant(
+            productId,
+            variantId,
+            req.body
+        );
+
+        res.status(200).json({
+            success: true,
+            data: variant,
+        });
+    };
+
+    updateAdminProductVariantStatus = async (req: Request, res: Response): Promise<void> => {
+        const productId = Number(req.params.productId);
+        const variantId = Number(req.params.variantId);
+
+        const variant = await this.service.updateAdminProductVariantStatus(
+            productId,
+            variantId,
+            req.body.isActive
+        );
+
+        res.status(200).json({
+            success: true,
+            data: variant,
+        });
+    };
+
 }

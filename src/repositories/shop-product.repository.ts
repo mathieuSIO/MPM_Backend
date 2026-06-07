@@ -183,4 +183,172 @@ export class ShopProductRepository {
 
         return result.rows;
     }
+
+    async findAllVariantsByProductId(
+        shopProductId: number
+    ): Promise<ShopProductVariantRow[]> {
+        const result = await db.query<ShopProductVariantRow>(
+            `
+        SELECT
+            id,
+            shop_product_id,
+            size_label,
+            color_name,
+            color_hex,
+            sku,
+            price_cents,
+            stock_quantity,
+            is_active,
+            created_at,
+            updated_at
+        FROM shop_product_variants
+        WHERE shop_product_id = $1
+        ORDER BY color_name ASC, size_label ASC
+        `,
+            [shopProductId]
+        );
+
+        return result.rows;
+    }
+
+    async createVariant(
+        shopProductId: number,
+        input: {
+            sizeLabel: string;
+            colorName: string;
+            colorHex?: string | null;
+            sku?: string | null;
+            priceCents?: number | null;
+            stockQuantity: number;
+            isActive?: boolean;
+        }
+    ): Promise<ShopProductVariantRow> {
+        const result = await db.query<ShopProductVariantRow>(
+            `
+        INSERT INTO shop_product_variants (
+            shop_product_id,
+            size_label,
+            color_name,
+            color_hex,
+            sku,
+            price_cents,
+            stock_quantity,
+            is_active
+        )
+        VALUES ($1, $2, $3, $4, $5, $6, $7, $8)
+        RETURNING
+            id,
+            shop_product_id,
+            size_label,
+            color_name,
+            color_hex,
+            sku,
+            price_cents,
+            stock_quantity,
+            is_active,
+            created_at,
+            updated_at
+        `,
+            [
+                shopProductId,
+                input.sizeLabel,
+                input.colorName,
+                input.colorHex ?? null,
+                input.sku ?? null,
+                input.priceCents ?? null,
+                input.stockQuantity,
+                input.isActive ?? true,
+            ]
+        );
+
+        return result.rows[0]!;
+    }
+
+    async updateVariantById(
+        shopProductId: number,
+        variantId: number,
+        input: {
+            sizeLabel?: string;
+            colorName?: string;
+            colorHex?: string | null;
+            sku?: string | null;
+            priceCents?: number | null;
+            stockQuantity?: number;
+            isActive?: boolean;
+        }
+    ): Promise<ShopProductVariantRow | null> {
+        const result = await db.query<ShopProductVariantRow>(
+            `
+        UPDATE shop_product_variants
+        SET
+            size_label = COALESCE($1, size_label),
+            color_name = COALESCE($2, color_name),
+            color_hex = COALESCE($3, color_hex),
+            sku = COALESCE($4, sku),
+            price_cents = COALESCE($5, price_cents),
+            stock_quantity = COALESCE($6, stock_quantity),
+            is_active = COALESCE($7, is_active),
+            updated_at = now()
+        WHERE id = $8
+          AND shop_product_id = $9
+        RETURNING
+            id,
+            shop_product_id,
+            size_label,
+            color_name,
+            color_hex,
+            sku,
+            price_cents,
+            stock_quantity,
+            is_active,
+            created_at,
+            updated_at
+        `,
+            [
+                input.sizeLabel ?? null,
+                input.colorName ?? null,
+                input.colorHex ?? null,
+                input.sku ?? null,
+                input.priceCents ?? null,
+                input.stockQuantity ?? null,
+                input.isActive ?? null,
+                variantId,
+                shopProductId,
+            ]
+        );
+
+        return result.rows[0] ?? null;
+    }
+
+    async updateVariantStatus(
+        shopProductId: number,
+        variantId: number,
+        isActive: boolean
+    ): Promise<ShopProductVariantRow | null> {
+        const result = await db.query<ShopProductVariantRow>(
+            `
+        UPDATE shop_product_variants
+        SET
+            is_active = $1,
+            updated_at = now()
+        WHERE id = $2
+          AND shop_product_id = $3
+        RETURNING
+            id,
+            shop_product_id,
+            size_label,
+            color_name,
+            color_hex,
+            sku,
+            price_cents,
+            stock_quantity,
+            is_active,
+            created_at,
+            updated_at
+        `,
+            [isActive, variantId, shopProductId]
+        );
+
+        return result.rows[0] ?? null;
+    }
 }

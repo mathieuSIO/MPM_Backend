@@ -4,6 +4,7 @@ import crypto from "crypto";
 import { env } from "../config/env.js";
 import { BadRequestError, NotFoundError } from "../errors/http-errors.js";
 import { ShopProductRepository } from "../repositories/shop-product.repository.js";
+import type { ShopProductVariant, ShopProductVariantRow } from "../types/shop-product.types.js";
 
 export class ShopProductService {
     constructor(private readonly repository = new ShopProductRepository()) { }
@@ -119,6 +120,73 @@ export class ShopProductService {
         };
     }
 
+    async getAdminProductVariants(
+        productId: number
+    ): Promise<ShopProductVariant[]> {
+        const variants =
+            await this.repository.findAllVariantsByProductId(productId);
+
+        return variants.map((variant) => this.toVariant(variant));
+    }
+
+    async createAdminProductVariant(
+        productId: number,
+        input: {
+            sizeLabel: string;
+            colorName: string;
+            colorHex?: string | null;
+            sku?: string | null;
+            priceCents?: number | null;
+            stockQuantity: number;
+            isActive?: boolean;
+        }
+    ): Promise<ShopProductVariant> {
+        const variant = await this.repository.createVariant(productId, input);
+
+        return this.toVariant(variant);
+    }
+
+    async updateAdminProductVariant(
+        productId: number,
+        variantId: number,
+        input: {
+            sizeLabel?: string;
+            colorName?: string;
+            colorHex?: string | null;
+            sku?: string | null;
+            priceCents?: number | null;
+            stockQuantity?: number;
+            isActive?: boolean;
+        }
+    ): Promise<ShopProductVariant> {
+        const variant = await this.repository.updateVariantById(
+            productId,
+            variantId,
+            input
+        );
+
+        if (!variant) {
+            throw new NotFoundError("Shop product variant not found");
+        }
+
+        return this.toVariant(variant);
+    }
+
+    async updateAdminProductVariantStatus(productId: number, variantId: number, isActive: boolean): Promise<ShopProductVariant> {
+        const variant = await this.repository.updateVariantStatus(
+            productId,
+            variantId,
+            isActive
+        );
+
+        if (!variant) {
+            throw new NotFoundError("Shop product variant not found");
+        }
+
+        return this.toVariant(variant);
+    }
+
+    //#region private methods
     private getImageExtension(mimeType: string): string {
         if (mimeType === "image/png") {
             return "png";
@@ -134,5 +202,23 @@ export class ShopProductService {
 
         throw new BadRequestError("Unsupported image format");
     }
+
+    private toVariant(variant: ShopProductVariantRow): ShopProductVariant {
+        return {
+            id: variant.id,
+            shopProductId: variant.shop_product_id,
+            sizeLabel: variant.size_label,
+            colorName: variant.color_name,
+            colorHex: variant.color_hex,
+            sku: variant.sku,
+            priceCents: variant.price_cents,
+            stockQuantity: variant.stock_quantity,
+            isActive: variant.is_active,
+            createdAt: variant.created_at,
+            updatedAt: variant.updated_at,
+        };
+    }
+
+    //#endregion
 
 }
