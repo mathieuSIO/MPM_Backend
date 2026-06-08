@@ -20,6 +20,7 @@ export const createOrderSchema = z.object({
             itemType: z.enum(["studio", "shop"]).optional(),
             productId: z.number().int().positive().nullable().optional(),
             shopProductId: z.number().int().positive().nullable().optional(),
+            shopProductVariantId: z.number().int().positive().nullable().optional(),
             productName: z.string().min(1),
             quantity: z.number().int().positive(),
             unitPriceCents: z.number().int().positive(),

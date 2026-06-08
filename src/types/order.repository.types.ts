@@ -39,6 +39,8 @@ export type CreateOrderItemsInput = {
   unitPriceCents: number;
   customization?: OrderItemCustomization | null;
   finalPreviewUrl?: string | null;
+
+  shopProductVariantId?: number | null;
 };
 
 export type CreateOrderWithItemsInput = {

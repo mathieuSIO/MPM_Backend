@@ -77,10 +77,23 @@ export class OrderService {
         const repositoryItems = input.items.map((item) => {
             const itemType = item.itemType ?? "studio";
 
+            if (itemType === "shop" && typeof item.shopProductId !== "number") {
+                throw new BadRequestError("Shop item shopProductId is required");
+            }
+
+            if (itemType === "shop" && typeof item.shopProductVariantId !== "number") {
+                throw new BadRequestError("Shop item shopProductVariantId is required");
+            }
+
+            if (itemType === "studio" && typeof item.productId !== "number") {
+                throw new BadRequestError("Studio item productId is required");
+            }
+
             return {
                 itemType,
                 productId: itemType === "studio" ? item.productId ?? null : null,
                 shopProductId: itemType === "shop" ? item.shopProductId ?? null : null,
+                shopProductVariantId: itemType === "shop" ? item.shopProductVariantId ?? null : null,
                 productName: item.productName,
                 quantity: item.quantity,
                 unitPriceCents: item.unitPriceCents,
@@ -88,6 +101,8 @@ export class OrderService {
                 finalPreviewUrl: item.finalPreviewUrl ?? null,
             };
         });
+
+
 
         return this.orderRepository.createOrderWithItems({
             order: {
@@ -196,17 +211,27 @@ export class OrderService {
     }
 
     async estimateShipping(input: {
-        items: { productId: number; quantity: number }[];
+        items: {
+            itemType?: "studio" | "shop";
+            productId?: number | null;
+            shopProductId?: number | null;
+            quantity: number;
+        }[];
     }) {
+        console.log("ESTIMATE SHIPPING INPUT:", JSON.stringify(input, null, 2));
         const totalWeightGrams = await this.calculateTotalWeightGrams({
             order: {
                 customerEmail: "estimate@local.test",
             },
             items: input.items.map((item) => ({
-                productId: item.productId,
+                itemType: item.itemType ?? "studio",
+                productId: item.itemType === "shop" ? null : item.productId ?? null,
+                shopProductId: item.itemType === "shop" ? item.shopProductId ?? null : null,
                 productName: "estimate",
                 quantity: item.quantity,
                 unitPriceCents: 1,
+                customization: null,
+                finalPreviewUrl: null,
             })),
         });
 
@@ -266,8 +291,6 @@ export class OrderService {
         return updatedOrder;
     }
 
-
-
     //#region Private methods
     private async calculateTotalWeightGrams(input: CreateOrderWithItemsServiceInput): Promise<number> {
         const studioProductIds = input.items
@@ -301,6 +324,7 @@ export class OrderService {
                 shopProductWeight.weight_grams,
             ])
         );
+        console.log(input.items)
 
         for (const item of input.items) {
             const itemType = item.itemType ?? "studio";

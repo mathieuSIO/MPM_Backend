@@ -37,7 +37,10 @@ export class OrderRepository {
                 await client.query(
                     `INSERT INTO order_items (
                         order_id,
+                        item_type,
                         product_id,
+                        shop_product_id,
+                        shop_product_variant_id,
                         product_name,
                         quantity,
                         unit_price_cents,
@@ -45,10 +48,13 @@ export class OrderRepository {
                         customization,
                         final_preview_url
                     )
-                    VALUES ($1, $2, $3, $4, $5, $6, $7, $8)`,
+                    VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9,  $10, $11)`,
                     [
                         order.id,
-                        item.productId,
+                        item.itemType,
+                        item.productId ?? null,
+                        item.shopProductId ?? null,
+                        item.shopProductVariantId ?? null,
                         item.productName,
                         item.quantity,
                         item.unitPriceCents,
@@ -163,6 +169,9 @@ export class OrderRepository {
                 id,
                 product_id,
                 product_name,
+                product_id,
+                shop_product_id,
+                shop_product_variant_id,
                 quantity,
                 unit_price_cents,
                 total_price_cents,
@@ -261,6 +270,9 @@ export class OrderRepository {
             id,
             product_id,
             product_name,
+            product_id,
+            shop_product_id,
+            shop_product_variant_id,
             quantity,
             unit_price_cents,
             total_price_cents,
