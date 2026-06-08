@@ -32,6 +32,8 @@ export class ShopProductService {
                 sku: variant.sku,
                 priceCents: variant.price_cents,
                 stockQuantity: variant.stock_quantity,
+                imageUrl: variant.image_url,
+                imageStorageKey: variant.image_storage_key,
                 isActive: variant.is_active,
             })),
         };
@@ -120,11 +122,8 @@ export class ShopProductService {
         };
     }
 
-    async getAdminProductVariants(
-        productId: number
-    ): Promise<ShopProductVariant[]> {
-        const variants =
-            await this.repository.findAllVariantsByProductId(productId);
+    async getAdminProductVariants(productId: number): Promise<ShopProductVariant[]> {
+        const variants = await this.repository.findAllVariantsByProductId(productId);
 
         return variants.map((variant) => this.toVariant(variant));
     }
@@ -138,6 +137,8 @@ export class ShopProductService {
             sku?: string | null;
             priceCents?: number | null;
             stockQuantity: number;
+            imageUrl?: string | null;
+            imageStorageKey?: string | null;
             isActive?: boolean;
         }
     ): Promise<ShopProductVariant> {
@@ -156,14 +157,12 @@ export class ShopProductService {
             sku?: string | null;
             priceCents?: number | null;
             stockQuantity?: number;
+            imageUrl?: string | null;
+            imageStorageKey?: string | null;
             isActive?: boolean;
         }
     ): Promise<ShopProductVariant> {
-        const variant = await this.repository.updateVariantById(
-            productId,
-            variantId,
-            input
-        );
+        const variant = await this.repository.updateVariantById(productId, variantId, input);
 
         if (!variant) {
             throw new NotFoundError("Shop product variant not found");
@@ -213,6 +212,8 @@ export class ShopProductService {
             sku: variant.sku,
             priceCents: variant.price_cents,
             stockQuantity: variant.stock_quantity,
+            imageUrl: variant.image_url,
+            imageStorageKey: variant.image_storage_key,
             isActive: variant.is_active,
             createdAt: variant.created_at,
             updatedAt: variant.updated_at,

@@ -170,6 +170,8 @@ export class ShopProductRepository {
                 sku,
                 price_cents,
                 stock_quantity,
+                image_url,
+                image_storage_key,
                 is_active,
                 created_at,
                 updated_at
@@ -184,9 +186,7 @@ export class ShopProductRepository {
         return result.rows;
     }
 
-    async findAllVariantsByProductId(
-        shopProductId: number
-    ): Promise<ShopProductVariantRow[]> {
+    async findAllVariantsByProductId(shopProductId: number): Promise<ShopProductVariantRow[]> {
         const result = await db.query<ShopProductVariantRow>(
             `
         SELECT
@@ -198,6 +198,8 @@ export class ShopProductRepository {
             sku,
             price_cents,
             stock_quantity,
+            image_url,
+            image_storage_key,
             is_active,
             created_at,
             updated_at
@@ -220,6 +222,8 @@ export class ShopProductRepository {
             sku?: string | null;
             priceCents?: number | null;
             stockQuantity: number;
+            imageUrl?: string | null;
+            imageStorageKey?: string | null;
             isActive?: boolean;
         }
     ): Promise<ShopProductVariantRow> {
@@ -233,9 +237,11 @@ export class ShopProductRepository {
             sku,
             price_cents,
             stock_quantity,
+            image_url,
+            image_storage_key,
             is_active
         )
-        VALUES ($1, $2, $3, $4, $5, $6, $7, $8)
+        VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10)
         RETURNING
             id,
             shop_product_id,
@@ -245,6 +251,8 @@ export class ShopProductRepository {
             sku,
             price_cents,
             stock_quantity,
+            image_url,
+            image_storage_key,
             is_active,
             created_at,
             updated_at
@@ -257,6 +265,8 @@ export class ShopProductRepository {
                 input.sku ?? null,
                 input.priceCents ?? null,
                 input.stockQuantity,
+                input.imageUrl ?? null,
+                input.imageStorageKey ?? null,
                 input.isActive ?? true,
             ]
         );
@@ -274,6 +284,8 @@ export class ShopProductRepository {
             sku?: string | null;
             priceCents?: number | null;
             stockQuantity?: number;
+            imageUrl?: string | null;
+            imageStorageKey?: string | null;
             isActive?: boolean;
         }
     ): Promise<ShopProductVariantRow | null> {
@@ -288,9 +300,11 @@ export class ShopProductRepository {
             price_cents = COALESCE($5, price_cents),
             stock_quantity = COALESCE($6, stock_quantity),
             is_active = COALESCE($7, is_active),
+            image_url = COALESCE($8, image_url),
+            image_storage_key = COALESCE($9, image_storage_key),
             updated_at = now()
-        WHERE id = $8
-          AND shop_product_id = $9
+        WHERE id = $10
+            AND shop_product_id = $11
         RETURNING
             id,
             shop_product_id,
@@ -300,6 +314,8 @@ export class ShopProductRepository {
             sku,
             price_cents,
             stock_quantity,
+            image_url,
+            image_storage_key,
             is_active,
             created_at,
             updated_at
@@ -312,6 +328,8 @@ export class ShopProductRepository {
                 input.priceCents ?? null,
                 input.stockQuantity ?? null,
                 input.isActive ?? null,
+                input.imageUrl ?? null,
+                input.imageStorageKey ?? null,
                 variantId,
                 shopProductId,
             ]
@@ -342,6 +360,8 @@ export class ShopProductRepository {
             sku,
             price_cents,
             stock_quantity,
+            image_url,
+            image_storage_key,
             is_active,
             created_at,
             updated_at

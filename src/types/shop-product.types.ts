@@ -31,6 +31,8 @@ export type ShopProductVariantRow = {
     price_cents: number | null;
     stock_quantity: number;
     is_active: boolean;
+    image_url: string | null;
+    image_storage_key: string | null;
     created_at: Date;
     updated_at: Date;
 };
@@ -45,6 +47,8 @@ export type ShopProductVariant = {
     priceCents: number | null;
     stockQuantity: number;
     isActive: boolean;
+    imageUrl: string | null;
+    imageStorageKey: string | null;
     createdAt: Date;
     updatedAt: Date;
 };
