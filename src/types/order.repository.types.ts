@@ -98,6 +98,12 @@ export type OrderItemDetailsRow = {
   total_price_cents: number;
   customization: OrderItemCustomization | null;
   final_preview_url: string | null;
+  
+  variant_size_label: string | null;
+  variant_color_name: string | null;
+  variant_color_hex: string | null;
+  variant_sku: string | null;
+  variant_image_url: string | null;
 };
 
 export type OrderDetailsRow = OrderSummaryRow & {

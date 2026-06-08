@@ -166,20 +166,27 @@ export class OrderRepository {
         const itemsResult = await db.query<OrderItemDetailsRow>(
             `
             SELECT
-                id,
-                product_id,
-                product_name,
-                product_id,
-                shop_product_id,
-                shop_product_variant_id,
-                quantity,
-                unit_price_cents,
-                total_price_cents,
-                customization,
-                final_preview_url
-            FROM order_items
-            WHERE order_id = $1
-            ORDER BY id ASC
+                oi.id,
+                oi.item_type,
+                oi.product_id,
+                oi.shop_product_id,
+                oi.shop_product_variant_id,
+                oi.product_name,
+                oi.quantity,
+                oi.unit_price_cents,
+                oi.total_price_cents,
+                oi.customization,
+                oi.final_preview_url,
+                spv.size_label AS variant_size_label,
+                spv.color_name AS variant_color_name,
+                spv.color_hex AS variant_color_hex,
+                spv.sku AS variant_sku,
+                spv.image_url AS variant_image_url
+            FROM order_items oi
+            LEFT JOIN shop_product_variants spv
+                ON spv.id = oi.shop_product_variant_id
+            WHERE oi.order_id = $1
+            ORDER BY oi.id ASC
             `,
             [orderId]
         );
@@ -267,20 +274,27 @@ export class OrderRepository {
         const itemsResult = await db.query<OrderItemDetailsRow>(
             `
         SELECT
-            id,
-            product_id,
-            product_name,
-            product_id,
-            shop_product_id,
-            shop_product_variant_id,
-            quantity,
-            unit_price_cents,
-            total_price_cents,
-            customization,
-            final_preview_url
-        FROM order_items
-        WHERE order_id = $1
-        ORDER BY id ASC
+            oi.id,
+            oi.item_type,
+            oi.product_id,
+            oi.shop_product_id,
+            oi.shop_product_variant_id,
+            oi.product_name,
+            oi.quantity,
+            oi.unit_price_cents,
+            oi.total_price_cents,
+            oi.customization,
+            oi.final_preview_url,
+            spv.size_label AS variant_size_label,
+            spv.color_name AS variant_color_name,
+            spv.color_hex AS variant_color_hex,
+            spv.sku AS variant_sku,
+            spv.image_url AS variant_image_url
+        FROM order_items oi
+        LEFT JOIN shop_product_variants spv
+            ON spv.id = oi.shop_product_variant_id
+        WHERE oi.order_id = $1
+        ORDER BY oi.id ASC
         `,
             [orderId]
         );
