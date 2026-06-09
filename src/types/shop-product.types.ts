@@ -52,3 +52,27 @@ export type ShopProductVariant = {
     createdAt: Date;
     updatedAt: Date;
 };
+
+export type ShopProductImageRow = {
+    id: number;
+    shop_product_id: number;
+    image_url: string;
+    image_storage_key: string | null;
+    alt_text: string | null;
+    display_order: number;
+    is_active: boolean;
+    created_at: Date;
+    updated_at: Date;
+};
+
+export type ShopProductImage = {
+    id: number;
+    shopProductId: number;
+    imageUrl: string;
+    imageStorageKey: string | null;
+    altText: string | null;
+    displayOrder: number;
+    isActive: boolean;
+    createdAt: Date;
+    updatedAt: Date;
+};

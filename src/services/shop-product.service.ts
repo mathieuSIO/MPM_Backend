@@ -4,7 +4,7 @@ import crypto from "crypto";
 import { env } from "../config/env.js";
 import { BadRequestError, NotFoundError } from "../errors/http-errors.js";
 import { ShopProductRepository } from "../repositories/shop-product.repository.js";
-import type { ShopProductVariant, ShopProductVariantRow } from "../types/shop-product.types.js";
+import type { ShopProductImage, ShopProductImageRow, ShopProductVariant, ShopProductVariantRow } from "../types/shop-product.types.js";
 
 export class ShopProductService {
     constructor(private readonly repository = new ShopProductRepository()) { }
@@ -185,6 +185,65 @@ export class ShopProductService {
         return this.toVariant(variant);
     }
 
+    async getAdminProductImages(productId: number): Promise<ShopProductImage[]> {
+        const images = await this.repository.findAllImagesByProductId(productId);
+
+        return images.map((image) => this.toImage(image));
+    }
+
+    async createAdminProductImage(
+        productId: number,
+        input: {
+            imageUrl: string;
+            imageStorageKey?: string | null;
+            altText?: string | null;
+            displayOrder?: number;
+            isActive?: boolean;
+        }
+    ): Promise<ShopProductImage> {
+        const image = await this.repository.createImage(productId, input);
+
+        return this.toImage(image);
+    }
+
+    async updateAdminProductImage(
+        productId: number,
+        imageId: number,
+        input: {
+            imageUrl?: string;
+            imageStorageKey?: string | null;
+            altText?: string | null;
+            displayOrder?: number;
+            isActive?: boolean;
+        }
+    ): Promise<ShopProductImage> {
+        const image = await this.repository.updateImageById(
+            productId,
+            imageId,
+            input
+        );
+
+        if (!image) {
+            throw new NotFoundError("Shop product image not found");
+        }
+
+        return this.toImage(image);
+    }
+
+    async updateAdminProductImageStatus(productId: number, imageId: number, isActive: boolean): Promise<ShopProductImage> {
+        const image = await this.repository.updateImageStatus(
+            productId,
+            imageId,
+            isActive
+        );
+
+        if (!image) {
+            throw new NotFoundError("Shop product image not found");
+        }
+
+        return this.toImage(image);
+    }
+
     //#region private methods
     private getImageExtension(mimeType: string): string {
         if (mimeType === "image/png") {
@@ -217,6 +276,20 @@ export class ShopProductService {
             isActive: variant.is_active,
             createdAt: variant.created_at,
             updatedAt: variant.updated_at,
+        };
+    }
+
+    private toImage(image: ShopProductImageRow): ShopProductImage {
+        return {
+            id: image.id,
+            shopProductId: image.shop_product_id,
+            imageUrl: image.image_url,
+            imageStorageKey: image.image_storage_key,
+            altText: image.alt_text,
+            displayOrder: image.display_order,
+            isActive: image.is_active,
+            createdAt: image.created_at,
+            updatedAt: image.updated_at,
         };
     }
 

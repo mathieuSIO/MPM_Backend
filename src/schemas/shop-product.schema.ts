@@ -34,3 +34,18 @@ export const updateShopProductVariantSchema =
 export const updateShopProductVariantStatusSchema = z.object({
     isActive: z.boolean(),
 });
+
+export const createShopProductImageSchema = z.object({
+    imageUrl: z.string().min(1),
+    imageStorageKey: z.string().nullable().optional(),
+    altText: z.string().nullable().optional(),
+    displayOrder: z.number().int().min(0).optional(),
+    isActive: z.boolean().optional(),
+});
+
+export const updateShopProductImageSchema =
+    createShopProductImageSchema.partial();
+
+export const updateShopProductImageStatusSchema = z.object({
+    isActive: z.boolean(),
+});

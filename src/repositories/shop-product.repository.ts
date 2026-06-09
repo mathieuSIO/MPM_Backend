@@ -1,5 +1,5 @@
 import { db } from "../db/connection.js";
-import type { ShopProductRow, ShopProductVariantRow } from "../types/shop-product.types.js";
+import type { ShopProductImageRow, ShopProductRow, ShopProductVariantRow } from "../types/shop-product.types.js";
 
 export class ShopProductRepository {
     async findAllActive(): Promise<ShopProductRow[]> {
@@ -367,6 +367,180 @@ export class ShopProductRepository {
             updated_at
         `,
             [isActive, variantId, shopProductId]
+        );
+
+        return result.rows[0] ?? null;
+    }
+
+    async findAllImagesByProductId(
+        shopProductId: number
+    ): Promise<ShopProductImageRow[]> {
+        const result = await db.query<ShopProductImageRow>(
+            `
+        SELECT
+            id,
+            shop_product_id,
+            image_url,
+            image_storage_key,
+            alt_text,
+            display_order,
+            is_active,
+            created_at,
+            updated_at
+        FROM shop_product_images
+        WHERE shop_product_id = $1
+        ORDER BY display_order ASC, id ASC
+        `,
+            [shopProductId]
+        );
+
+        return result.rows;
+    }
+
+    async findActiveImagesByProductId(
+        shopProductId: number
+    ): Promise<ShopProductImageRow[]> {
+        const result = await db.query<ShopProductImageRow>(
+            `
+        SELECT
+            id,
+            shop_product_id,
+            image_url,
+            image_storage_key,
+            alt_text,
+            display_order,
+            is_active,
+            created_at,
+            updated_at
+        FROM shop_product_images
+        WHERE shop_product_id = $1
+          AND is_active = true
+        ORDER BY display_order ASC, id ASC
+        `,
+            [shopProductId]
+        );
+
+        return result.rows;
+    }
+
+    async createImage(
+        shopProductId: number,
+        input: {
+            imageUrl: string;
+            imageStorageKey?: string | null;
+            altText?: string | null;
+            displayOrder?: number;
+            isActive?: boolean;
+        }
+    ): Promise<ShopProductImageRow> {
+        const result = await db.query<ShopProductImageRow>(
+            `
+        INSERT INTO shop_product_images (
+            shop_product_id,
+            image_url,
+            image_storage_key,
+            alt_text,
+            display_order,
+            is_active
+        )
+        VALUES ($1, $2, $3, $4, $5, $6)
+        RETURNING
+            id,
+            shop_product_id,
+            image_url,
+            image_storage_key,
+            alt_text,
+            display_order,
+            is_active,
+            created_at,
+            updated_at
+        `,
+            [
+                shopProductId,
+                input.imageUrl,
+                input.imageStorageKey ?? null,
+                input.altText ?? null,
+                input.displayOrder ?? 0,
+                input.isActive ?? true,
+            ]
+        );
+
+        return result.rows[0]!;
+    }
+
+    async updateImageById(
+        shopProductId: number,
+        imageId: number,
+        input: {
+            imageUrl?: string;
+            imageStorageKey?: string | null;
+            altText?: string | null;
+            displayOrder?: number;
+            isActive?: boolean;
+        }
+    ): Promise<ShopProductImageRow | null> {
+        const result = await db.query<ShopProductImageRow>(
+            `
+        UPDATE shop_product_images
+        SET
+            image_url = COALESCE($1, image_url),
+            image_storage_key = COALESCE($2, image_storage_key),
+            alt_text = COALESCE($3, alt_text),
+            display_order = COALESCE($4, display_order),
+            is_active = COALESCE($5, is_active),
+            updated_at = now()
+        WHERE id = $6
+          AND shop_product_id = $7
+        RETURNING
+            id,
+            shop_product_id,
+            image_url,
+            image_storage_key,
+            alt_text,
+            display_order,
+            is_active,
+            created_at,
+            updated_at
+        `,
+            [
+                input.imageUrl ?? null,
+                input.imageStorageKey ?? null,
+                input.altText ?? null,
+                input.displayOrder ?? null,
+                input.isActive ?? null,
+                imageId,
+                shopProductId,
+            ]
+        );
+
+        return result.rows[0] ?? null;
+    }
+
+    async updateImageStatus(
+        shopProductId: number,
+        imageId: number,
+        isActive: boolean
+    ): Promise<ShopProductImageRow | null> {
+        const result = await db.query<ShopProductImageRow>(
+            `
+        UPDATE shop_product_images
+        SET
+            is_active = $1,
+            updated_at = now()
+        WHERE id = $2
+          AND shop_product_id = $3
+        RETURNING
+            id,
+            shop_product_id,
+            image_url,
+            image_storage_key,
+            alt_text,
+            display_order,
+            is_active,
+            created_at,
+            updated_at
+        `,
+            [isActive, imageId, shopProductId]
         );
 
         return result.rows[0] ?? null;

@@ -154,4 +154,61 @@ export class ShopProductController {
         });
     };
 
+    getAdminProductImages = async (req: Request, res: Response): Promise<void> => {
+        const productId = Number(req.params.productId);
+
+        const images = await this.service.getAdminProductImages(productId);
+
+        res.status(200).json({
+            success: true,
+            data: images,
+        });
+    };
+
+    createAdminProductImage = async (req: Request, res: Response): Promise<void> => {
+        const productId = Number(req.params.productId);
+
+        const image = await this.service.createAdminProductImage(
+            productId,
+            req.body
+        );
+
+        res.status(201).json({
+            success: true,
+            data: image,
+        });
+    };
+
+    updateAdminProductImage = async (req: Request, res: Response): Promise<void> => {
+        const productId = Number(req.params.productId);
+        const imageId = Number(req.params.imageId);
+
+        const image = await this.service.updateAdminProductImage(
+            productId,
+            imageId,
+            req.body
+        );
+
+        res.status(200).json({
+            success: true,
+            data: image,
+        });
+    };
+
+    updateAdminProductImageStatus = async (req: Request, res: Response): Promise<void> => {
+        const productId = Number(req.params.productId);
+        const imageId = Number(req.params.imageId);
+
+        const image = await this.service.updateAdminProductImageStatus(
+            productId,
+            imageId,
+            req.body.isActive
+        );
+
+        res.status(200).json({
+            success: true,
+            data: image,
+        });
+    };
+
 }

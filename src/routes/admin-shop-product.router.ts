@@ -6,8 +6,11 @@ import { requireAdmin } from "../middleware/require-admin.middleware.js";
 import { requireAuth } from "../middleware/require-auth.middleware.js";
 import { validateBody } from "../middleware/validate-body.middleware.js";
 import {
+    createShopProductImageSchema,
     createShopProductSchema,
     createShopProductVariantSchema,
+    updateShopProductImageSchema,
+    updateShopProductImageStatusSchema,
     updateShopProductSchema,
     updateShopProductStatusSchema,
     updateShopProductVariantSchema,
@@ -27,5 +30,9 @@ router.get("/:productId/variants", requireAuth, requireAdmin, asyncHandler(contr
 router.post("/:productId/variants", requireAuth, requireAdmin, validateBody(createShopProductVariantSchema), asyncHandler(controller.createAdminProductVariant));
 router.patch("/:productId/variants/:variantId", requireAuth, requireAdmin, validateBody(updateShopProductVariantSchema), asyncHandler(controller.updateAdminProductVariant));
 router.patch("/:productId/variants/:variantId/status", requireAuth, requireAdmin, validateBody(updateShopProductVariantStatusSchema), asyncHandler(controller.updateAdminProductVariantStatus));
+router.get("/:productId/images", requireAuth, requireAdmin, asyncHandler(controller.getAdminProductImages));
+router.post("/:productId/images", requireAuth, requireAdmin, validateBody(createShopProductImageSchema), asyncHandler(controller.createAdminProductImage));
+router.patch("/:productId/images/:imageId", requireAuth, requireAdmin, validateBody(updateShopProductImageSchema), asyncHandler(controller.updateAdminProductImage));
+router.patch("/:productId/images/:imageId/status", requireAuth, requireAdmin, validateBody(updateShopProductImageStatusSchema), asyncHandler(controller.updateAdminProductImageStatus));
 
 export default router;
