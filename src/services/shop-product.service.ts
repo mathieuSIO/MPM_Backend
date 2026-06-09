@@ -4,7 +4,7 @@ import crypto from "crypto";
 import { env } from "../config/env.js";
 import { BadRequestError, NotFoundError } from "../errors/http-errors.js";
 import { ShopProductRepository } from "../repositories/shop-product.repository.js";
-import type { ShopProductImage, ShopProductImageRow, ShopProductVariant, ShopProductVariantRow } from "../types/shop-product.types.js";
+import type { ShopProductDetails, ShopProductImage, ShopProductImageRow, ShopProductVariant, ShopProductVariantRow } from "../types/shop-product.types.js";
 
 export class ShopProductService {
     constructor(private readonly repository = new ShopProductRepository()) { }
@@ -13,7 +13,7 @@ export class ShopProductService {
         return this.repository.findAllActive();
     }
 
-    async getProduct(slug: string) {
+    async getProduct(slug: string): Promise<ShopProductDetails> {
         const product = await this.repository.findBySlug(slug);
 
         if (!product) {
@@ -22,10 +22,26 @@ export class ShopProductService {
 
         const variants = await this.repository.findVariantsByProductId(product.id);
 
+        const images = await this.repository.findActiveImagesByProductId(product.id);
+
         return {
-            ...product,
+            id: product.id,
+            name: product.name,
+            slug: product.slug,
+            description: product.description,
+            priceCents: product.price_cents,
+            imageUrl: product.image_url,
+            imageStorageKey: product.image_storage_key,
+            images: images.map((image) => ({
+                id: image.id,
+                imageUrl: image.image_url,
+                imageStorageKey: image.image_storage_key,
+                altText: image.alt_text,
+                displayOrder: image.display_order,
+            })),
             variants: variants.map((variant) => ({
                 id: variant.id,
+                shopProductId: variant.shop_product_id,
                 sizeLabel: variant.size_label,
                 colorName: variant.color_name,
                 colorHex: variant.color_hex,
@@ -34,10 +50,13 @@ export class ShopProductService {
                 stockQuantity: variant.stock_quantity,
                 imageUrl: variant.image_url,
                 imageStorageKey: variant.image_storage_key,
+                createdAt: variant.created_at,
+                updatedAt: variant.updated_at,
                 isActive: variant.is_active,
             })),
         };
     }
+
     async getAdminProducts() {
         return this.repository.findAllAdmin();
     }

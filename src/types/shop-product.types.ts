@@ -46,11 +46,11 @@ export type ShopProductVariant = {
     sku: string | null;
     priceCents: number | null;
     stockQuantity: number;
-    isActive: boolean;
     imageUrl: string | null;
     imageStorageKey: string | null;
     createdAt: Date;
     updatedAt: Date;
+    isActive: boolean;
 };
 
 export type ShopProductImageRow = {
@@ -75,4 +75,15 @@ export type ShopProductImage = {
     isActive: boolean;
     createdAt: Date;
     updatedAt: Date;
+};
+
+export type ShopProductDetails = ShopProduct & {
+    images: {
+        id: number;
+        imageUrl: string;
+        imageStorageKey: string | null;
+        altText: string | null;
+        displayOrder: number;
+    }[];
+    variants: ShopProductVariant[];
 };

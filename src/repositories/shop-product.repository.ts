@@ -397,9 +397,7 @@ export class ShopProductRepository {
         return result.rows;
     }
 
-    async findActiveImagesByProductId(
-        shopProductId: number
-    ): Promise<ShopProductImageRow[]> {
+    async findActiveImagesByProductId(shopProductId: number): Promise<ShopProductImageRow[]> {
         const result = await db.query<ShopProductImageRow>(
             `
         SELECT
