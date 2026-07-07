@@ -1,6 +1,6 @@
 import type { PoolClient } from "pg";
 import { db } from "../db/connection.js";
-import type { CreateOrderRepositoryInput, CreateOrderRepositoryOutput, CreateOrderWithItemsInput, OrderDetailsRow, OrderItemDetailsRow, OrderSummaryRow, ProductReferenceWeightRow, ShopProductWeightRow, UpdateOrderShippingInput } from "../types/order.repository.types.js";
+import type { CreateOrderRepositoryInput, CreateOrderRepositoryOutput, CreateOrderWithItemsInput, OrderDetailsRow, OrderItemDetailsRow, OrderMetaPurchaseItemRow, OrderMetaPurchaseRow, OrderSummaryRow, ProductReferenceWeightRow, ShopProductWeightRow, UpdateOrderShippingInput } from "../types/order.repository.types.js";
 import type { OrderStatus } from "../types/order.types.js";
 
 export class OrderRepository {
@@ -345,6 +345,63 @@ export class OrderRepository {
         );
 
         return result.rows[0] ?? null;
+    }
+
+    async findOrderMetaPurchaseById(orderId: number): Promise<OrderMetaPurchaseRow | null> {
+        const orderResult = await db.query<Omit<OrderMetaPurchaseRow, "items">>(
+            `
+        SELECT
+            id,
+            status,
+            total_price_cents,
+            customer_first_name,
+            customer_last_name,
+            customer_email,
+            customer_phone,
+            meta_purchase_event_sent_at
+        FROM orders
+        WHERE id = $1
+        `,
+            [orderId]
+        );
+
+        const order = orderResult.rows[0];
+
+        if (!order) {
+            return null;
+        }
+
+        const itemsResult = await db.query<OrderMetaPurchaseItemRow>(
+            `
+        SELECT
+            product_id,
+            shop_product_id,
+            shop_product_variant_id,
+            product_name,
+            quantity
+        FROM order_items
+        WHERE order_id = $1
+        ORDER BY id ASC
+        `,
+            [orderId]
+        );
+
+        return {
+            ...order,
+            items: itemsResult.rows,
+        };
+    }
+
+    async markMetaPurchaseEventSent(orderId: number): Promise<void> {
+        await db.query(
+            `
+        UPDATE orders
+        SET meta_purchase_event_sent_at = NOW()
+        WHERE id = $1
+        AND meta_purchase_event_sent_at IS NULL
+        `,
+            [orderId]
+        );
     }
 
     async findProductReferenceWeightsByProductIds(

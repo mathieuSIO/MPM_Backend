@@ -36,10 +36,20 @@ export class PaymentController {
             const session = event.data.object;
 
             await this.paymentService.handleCheckoutSessionCompleted(
-                session.id,
-                typeof session.payment_intent === "string"
-                    ? session.payment_intent
-                    : ""
+                {
+                    checkoutSessionId: session.id,
+                    clientIpAddress: readSessionMetadataValue(
+                        session.metadata,
+                        "clientIpAddress"
+                    ),
+                    clientUserAgent: readSessionMetadataValue(
+                        session.metadata,
+                        "clientUserAgent"
+                    ),
+                    paymentIntentId: typeof session.payment_intent === "string"
+                        ? session.payment_intent
+                        : "",
+                }
             );
         }
 
@@ -52,7 +62,11 @@ export class PaymentController {
         const orderId = Number(req.body.orderId);
 
         const checkoutUrl =
-            await this.paymentService.createCheckoutSession(orderId);
+            await this.paymentService.createCheckoutSession({
+                clientIpAddress: req.ip ?? null,
+                clientUserAgent: req.get("user-agent") ?? null,
+                orderId,
+            });
 
         res.status(200).json({
             success: true,
@@ -61,4 +75,13 @@ export class PaymentController {
             },
         });
     };
+}
+
+function readSessionMetadataValue(
+    metadata: Stripe.Metadata | null,
+    key: string
+): string | null {
+    const value = metadata?.[key];
+
+    return value && value.trim().length > 0 ? value : null;
 }

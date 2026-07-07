@@ -1,13 +1,33 @@
+import type Stripe from "stripe";
+
 import { stripe } from "../config/stripe.js";
 
 import { NotFoundError, BadRequestError } from "../errors/http-errors.js";
 
 import { OrderRepository } from "../repositories/order.repository.js";
 import { PaymentRepository } from "../repositories/payment.repository.js";
+import type { OrderMetaPurchaseRow } from "../types/order.repository.types.js";
 
 import { env } from "../config/env.js";
 import { EmailService } from "./email/email.service.js";
 import { PromoCodeRepository } from "../repositories/promo-code.repository.js";
+import {
+    sendMetaPurchaseEvent,
+    type SendMetaPurchaseEventParams,
+} from "./metaConversions.service.js";
+
+type HandleCheckoutSessionCompletedInput = {
+    checkoutSessionId: string;
+    clientIpAddress?: string | null;
+    clientUserAgent?: string | null;
+    paymentIntentId: string;
+};
+
+type CreateCheckoutSessionInput = {
+    clientIpAddress?: string | null;
+    clientUserAgent?: string | null;
+    orderId: number;
+};
 
 export class PaymentService {
     constructor(
@@ -17,8 +37,8 @@ export class PaymentService {
         private readonly promoCodeRepository = new PromoCodeRepository(),
     ) { }
 
-    async createCheckoutSession(orderId: number): Promise<string> {
-        const order = await this.orderRepository.findOrderById(orderId);
+    async createCheckoutSession(input: CreateCheckoutSessionInput): Promise<string> {
+        const order = await this.orderRepository.findOrderById(input.orderId);
 
         if (!order) {
             throw new NotFoundError("Order not found");
@@ -38,6 +58,7 @@ export class PaymentService {
             cancel_url: `${env.frontendOrigin}/checkout/cancel`,
 
             customer_email: order.customer_email,
+            metadata: createCheckoutSessionMetadata(input),
 
             line_items: [
                 {
@@ -70,10 +91,12 @@ export class PaymentService {
         return session.url;
     }
 
-    async handleCheckoutSessionCompleted(
-        checkoutSessionId: string,
-        paymentIntentId: string
-    ): Promise<void> {
+    async handleCheckoutSessionCompleted({
+        checkoutSessionId,
+        clientIpAddress,
+        clientUserAgent,
+        paymentIntentId,
+    }: HandleCheckoutSessionCompletedInput): Promise<void> {
         const payment =
             await this.paymentRepository.findPaymentByCheckoutSessionId(
                 checkoutSessionId
@@ -86,6 +109,13 @@ export class PaymentService {
         }
 
         if (payment.status === "paid") {
+            await this.sendMetaPurchaseForPaidOrder(
+                createMetaPurchaseInput({
+                    clientIpAddress,
+                    clientUserAgent,
+                    orderId: payment.order_id,
+                })
+            );
             return;
         }
 
@@ -98,6 +128,14 @@ export class PaymentService {
         await this.orderRepository.updateOrderStatus(
             payment.order_id,
             "paid"
+        );
+
+        await this.sendMetaPurchaseForPaidOrder(
+            createMetaPurchaseInput({
+                clientIpAddress,
+                clientUserAgent,
+                orderId: payment.order_id,
+            })
         );
 
         const order = await this.orderRepository.findOrderById(
@@ -133,4 +171,119 @@ export class PaymentService {
             );
         }
     }
+
+    private async sendMetaPurchaseForPaidOrder(input: MetaPurchaseInput): Promise<void> {
+        const order = await this.orderRepository.findOrderMetaPurchaseById(
+            input.orderId
+        );
+
+        if (!order || order.status !== "paid") {
+            return;
+        }
+
+        if (order.meta_purchase_event_sent_at !== null) {
+            return;
+        }
+
+        const eventParams = createSendMetaPurchaseEventParams({
+            clientIpAddress: input.clientIpAddress,
+            clientUserAgent: input.clientUserAgent,
+            order,
+            eventId: input.eventId,
+        });
+
+        const isMetaPurchaseEventSent = await sendMetaPurchaseEvent(eventParams);
+
+        if (isMetaPurchaseEventSent) {
+            await this.orderRepository.markMetaPurchaseEventSent(order.id);
+        }
+    }
+}
+
+function createCheckoutSessionMetadata(
+    input: CreateCheckoutSessionInput
+): Stripe.MetadataParam {
+    const metadata: Stripe.MetadataParam = {};
+    const clientIpAddress = normalizeStripeMetadataValue(input.clientIpAddress);
+    const clientUserAgent = normalizeStripeMetadataValue(input.clientUserAgent);
+
+    if (clientIpAddress) {
+        metadata.clientIpAddress = clientIpAddress;
+    }
+
+    if (clientUserAgent) {
+        metadata.clientUserAgent = clientUserAgent;
+    }
+
+    return metadata;
+}
+
+function normalizeStripeMetadataValue(value: string | null | undefined): string | null {
+    const normalizedValue = value?.trim();
+
+    if (!normalizedValue) {
+        return null;
+    }
+
+    return normalizedValue.slice(0, 500);
+}
+
+type MetaPurchaseInput = {
+    clientIpAddress: string | null;
+    clientUserAgent: string | null;
+    eventId: string;
+    orderId: number;
+};
+
+function createMetaPurchaseInput(input: {
+    clientIpAddress: string | null | undefined;
+    clientUserAgent: string | null | undefined;
+    orderId: number;
+}): MetaPurchaseInput {
+    return {
+        clientIpAddress: input.clientIpAddress ?? null,
+        clientUserAgent: input.clientUserAgent ?? null,
+        eventId: createMetaPurchaseEventId(input.orderId),
+        orderId: input.orderId,
+    };
+}
+
+function createSendMetaPurchaseEventParams(input: {
+    clientIpAddress: string | null;
+    clientUserAgent: string | null;
+    eventId: string;
+    order: OrderMetaPurchaseRow;
+}): SendMetaPurchaseEventParams {
+    return {
+        clientIpAddress: input.clientIpAddress,
+        clientUserAgent: input.clientUserAgent,
+        contentIds: createMetaContentIds(input.order.items),
+        email: input.order.customer_email,
+        eventId: input.eventId,
+        firstName: input.order.customer_first_name,
+        lastName: input.order.customer_last_name,
+        orderId: input.order.id,
+        phone: input.order.customer_phone,
+        value: input.order.total_price_cents / 100,
+    };
+}
+
+function createMetaPurchaseEventId(orderId: number): string {
+    return `order-${orderId}`;
+}
+
+function createMetaContentIds(
+    items: Array<{
+        product_id: number | null;
+        shop_product_id: number | null;
+        shop_product_variant_id: number | null;
+    }>
+): string[] {
+    const contentIds = items
+        .map((item) =>
+            item.shop_product_id ?? item.product_id ?? item.shop_product_variant_id
+        )
+        .filter((contentId): contentId is number => contentId !== null);
+
+    return [...new Set(contentIds)].map(String);
 }

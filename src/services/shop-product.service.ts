@@ -1,7 +1,6 @@
 import fs from "fs/promises";
 import path from "path";
 import crypto from "crypto";
-import { env } from "../config/env.js";
 import { BadRequestError, NotFoundError } from "../errors/http-errors.js";
 import { ShopProductRepository } from "../repositories/shop-product.repository.js";
 import type { ShopProductDetails, ShopProductImage, ShopProductImageRow, ShopProductVariant, ShopProductVariantRow } from "../types/shop-product.types.js";

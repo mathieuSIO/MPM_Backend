@@ -127,6 +127,26 @@ export type OrderDetailsRow = OrderSummaryRow & {
   shipping_status: string | null;
 };
 
+export type OrderMetaPurchaseItemRow = {
+  product_id: number | null;
+  product_name: string;
+  quantity: number;
+  shop_product_id: number | null;
+  shop_product_variant_id: number | null;
+};
+
+export type OrderMetaPurchaseRow = {
+  customer_email: string;
+  customer_first_name: string | null;
+  customer_last_name: string | null;
+  customer_phone: string | null;
+  id: number;
+  items: OrderMetaPurchaseItemRow[];
+  meta_purchase_event_sent_at: Date | null;
+  status: string;
+  total_price_cents: number;
+};
+
 export type UpdateOrderStatusRepositoryInput = {
   orderId: number;
   status: OrderStatus;
