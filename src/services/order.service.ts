@@ -30,8 +30,6 @@ export class OrderService {
     async createOrderWithItems(input: CreateOrderWithItemsServiceInput): Promise<CreateOrderRepositoryOutput> {
         this.validateCreateOrderWithItemsInput(input);
 
-        console.log("PROMO CODE RECEIVED:", input.promoCode);
-
         const itemsTotalPriceCents = this.calculateItemsTotalPriceCents(input);
         const productionOption = input.order.productionOption ?? "standard";
         const productionConfig = PRODUCTION_OPTIONS[productionOption];
@@ -107,6 +105,7 @@ export class OrderService {
         return this.orderRepository.createOrderWithItems({
             order: {
                 ...input.order,
+                customerEmail: normalizeCustomerEmail(input.order.customerEmail),
                 totalPriceCents,
                 shippingCountry: input.order.shippingCountry ?? "France",
                 productionOption,
@@ -145,7 +144,7 @@ export class OrderService {
 
     private validateCreateOrderWithItemsInput(input: CreateOrderWithItemsServiceInput): void {
 
-        if (!input.order.customerEmail) {
+        if (!normalizeCustomerEmail(input.order.customerEmail)) {
             throw new BadRequestError("Customer email is required");
         }
 
@@ -218,7 +217,6 @@ export class OrderService {
             quantity: number;
         }[];
     }) {
-        console.log("ESTIMATE SHIPPING INPUT:", JSON.stringify(input, null, 2));
         const totalWeightGrams = await this.calculateTotalWeightGrams({
             order: {
                 customerEmail: "estimate@local.test",
@@ -324,8 +322,6 @@ export class OrderService {
                 shopProductWeight.weight_grams,
             ])
         );
-        console.log(input.items)
-
         for (const item of input.items) {
             const itemType = item.itemType ?? "studio";
 
@@ -365,4 +361,8 @@ export class OrderService {
     }
     //#endregion
 
+}
+
+function normalizeCustomerEmail(email: string): string {
+    return email.trim().toLowerCase();
 }

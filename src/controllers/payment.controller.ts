@@ -66,6 +66,7 @@ export class PaymentController {
                 clientIpAddress: req.ip ?? null,
                 clientUserAgent: req.get("user-agent") ?? null,
                 orderId,
+                userId: req.user?.userId ?? null,
             });
 
         res.status(200).json({
@@ -73,6 +74,20 @@ export class PaymentController {
             data: {
                 checkoutUrl,
             },
+        });
+    };
+
+    createCheckout = async (req: Request, res: Response): Promise<void> => {
+        const result = await this.paymentService.createCheckout({
+            clientIpAddress: req.ip ?? null,
+            clientUserAgent: req.get("user-agent") ?? null,
+            orderInput: req.body,
+            userId: req.user?.userId ?? null,
+        });
+
+        res.status(201).json({
+            success: true,
+            data: result,
         });
     };
 }

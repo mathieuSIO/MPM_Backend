@@ -11,10 +11,12 @@ import type { OrderMetaPurchaseRow } from "../types/order.repository.types.js";
 import { env } from "../config/env.js";
 import { EmailService } from "./email/email.service.js";
 import { PromoCodeRepository } from "../repositories/promo-code.repository.js";
+import { OrderService } from "./order.service.js";
 import {
     sendMetaPurchaseEvent,
     type SendMetaPurchaseEventParams,
 } from "./metaConversions.service.js";
+import type { CreateOrderWithItemsServiceInput } from "../types/order.service.types.js";
 
 type HandleCheckoutSessionCompletedInput = {
     checkoutSessionId: string;
@@ -24,9 +26,24 @@ type HandleCheckoutSessionCompletedInput = {
 };
 
 type CreateCheckoutSessionInput = {
+    clientIpAddress: string | null | undefined;
+    clientUserAgent: string | null | undefined;
+    guestEmail?: string | null;
+    orderId: number;
+    userId?: number | null;
+};
+
+type CreateCheckoutInput = {
     clientIpAddress?: string | null;
     clientUserAgent?: string | null;
+    orderInput: CreateOrderWithItemsServiceInput;
+    userId?: number | null;
+};
+
+type CreateCheckoutOutput = {
+    checkoutUrl: string;
     orderId: number;
+    totalPriceCents: number;
 };
 
 export class PaymentService {
@@ -35,7 +52,49 @@ export class PaymentService {
         private readonly paymentRepository = new PaymentRepository(),
         private readonly emailService = new EmailService(),
         private readonly promoCodeRepository = new PromoCodeRepository(),
+        private readonly orderService = new OrderService(),
     ) { }
+
+    async createCheckout(input: CreateCheckoutInput): Promise<CreateCheckoutOutput> {
+        const isGuestCheckout = input.userId === null || input.userId === undefined;
+
+        if (isGuestCheckout) {
+            validateGuestCheckoutItems(input.orderInput);
+        }
+
+        const orderResult = await this.orderService.createOrderWithItems({
+            ...input.orderInput,
+            order: {
+                ...input.orderInput.order,
+                userId: input.userId ?? null,
+            },
+        });
+
+        console.info(
+            `Checkout order created: orderId=${orderResult.id}, mode=${isGuestCheckout ? "guest" : "authenticated"}`
+        );
+
+        const checkoutUrl = await this.createCheckoutSession({
+            clientIpAddress: input.clientIpAddress,
+            clientUserAgent: input.clientUserAgent,
+            guestEmail: isGuestCheckout
+                ? input.orderInput.order.customerEmail.trim().toLowerCase()
+                : null,
+            orderId: orderResult.id,
+            userId: input.userId ?? null,
+        });
+        const order = await this.orderRepository.findOrderById(orderResult.id);
+
+        if (!order) {
+            throw new NotFoundError("Order not found after checkout creation");
+        }
+
+        return {
+            checkoutUrl,
+            orderId: orderResult.id,
+            totalPriceCents: order.total_price_cents,
+        };
+    }
 
     async createCheckoutSession(input: CreateCheckoutSessionInput): Promise<string> {
         const order = await this.orderRepository.findOrderById(input.orderId);
@@ -88,6 +147,10 @@ export class PaymentService {
             currency: "eur",
         });
 
+        console.info(
+            `Stripe checkout session created: orderId=${order.id}, mode=${input.userId ? "authenticated" : "guest"}`
+        );
+
         return session.url;
     }
 
@@ -128,6 +191,10 @@ export class PaymentService {
         await this.orderRepository.updateOrderStatus(
             payment.order_id,
             "paid"
+        );
+
+        console.info(
+            `Stripe checkout completed: orderId=${payment.order_id}, paymentId=${payment.id}`
         );
 
         await this.sendMetaPurchaseForPaidOrder(
@@ -206,6 +273,17 @@ function createCheckoutSessionMetadata(
     const metadata: Stripe.MetadataParam = {};
     const clientIpAddress = normalizeStripeMetadataValue(input.clientIpAddress);
     const clientUserAgent = normalizeStripeMetadataValue(input.clientUserAgent);
+    const guestEmail = normalizeStripeMetadataValue(input.guestEmail);
+
+    metadata.orderId = String(input.orderId);
+
+    if (input.userId) {
+        metadata.userId = String(input.userId);
+    }
+
+    if (guestEmail) {
+        metadata.guestEmail = guestEmail.toLowerCase();
+    }
 
     if (clientIpAddress) {
         metadata.clientIpAddress = clientIpAddress;
@@ -216,6 +294,16 @@ function createCheckoutSessionMetadata(
     }
 
     return metadata;
+}
+
+function validateGuestCheckoutItems(input: CreateOrderWithItemsServiceInput): void {
+    const hasNonShopItem = input.items.some((item) => item.itemType !== "shop");
+
+    if (hasNonShopItem) {
+        throw new BadRequestError(
+            "Guest checkout is only available for shop products"
+        );
+    }
 }
 
 function normalizeStripeMetadataValue(value: string | null | undefined): string | null {
