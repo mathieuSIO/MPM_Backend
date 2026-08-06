@@ -1,6 +1,7 @@
 import type { PoolClient } from "pg";
 import { db } from "../db/connection.js";
 import type { CreateOrderRepositoryInput, CreateOrderRepositoryOutput, CreateOrderWithItemsInput, OrderDetailsRow, OrderItemDetailsRow, OrderMetaPurchaseItemRow, OrderMetaPurchaseRow, OrderSummaryRow, ProductReferenceWeightRow, ShopProductWeightRow, UpdateOrderShippingInput } from "../types/order.repository.types.js";
+import type { RelaySelectionContextRow, SelectedRelayPointRow, SelectRelayPointInput } from "../types/relay-point.types.js";
 import type { OrderStatus } from "../types/order.types.js";
 
 export class OrderRepository {
@@ -464,6 +465,120 @@ export class OrderRepository {
         return result.rows;
     }
 
+    async findRelaySelectionContextByCheckoutSessionId(
+        checkoutSessionId: string
+    ): Promise<RelaySelectionContextRow | null> {
+        const result = await db.query<RelaySelectionContextRow>(
+            `
+        SELECT
+            o.id AS order_id,
+            o.status AS order_status,
+
+            p.status AS payment_status,
+
+            os.shipping_method,
+            os.status AS shipment_status,
+            os.relay_selection_status,
+            os.relay_point_id,
+            os.relay_point_name
+
+        FROM payments p
+
+        INNER JOIN orders o
+            ON o.id = p.order_id
+
+        INNER JOIN order_shipments os
+            ON os.order_id = o.id
+
+        WHERE p.provider_checkout_session_id = $1
+
+        LIMIT 1
+        `,
+            [checkoutSessionId]
+        );
+
+        return result.rows[0] ?? null;
+    }
+
+    async selectRelayPoint(
+        orderId: number,
+        input: SelectRelayPointInput["relayPoint"]
+    ): Promise<SelectedRelayPointRow | null> {
+        const legacyAddress = [
+            input.addressLine1,
+            input.addressLine2,
+            `${input.postalCode} ${input.city}`,
+            input.country,
+        ]
+            .filter(
+                (value): value is string =>
+                    typeof value === "string" &&
+                    value.trim().length > 0
+            )
+            .join(", ");
+
+        const result = await db.query<SelectedRelayPointRow>(
+            `
+        UPDATE order_shipments
+        SET
+            relay_selection_status = 'selected',
+
+            relay_point_id = $1,
+            relay_point_name = $2,
+
+            relay_point_address = $3,
+            relay_point_address_line1 = $4,
+            relay_point_address_line2 = $5,
+            relay_point_postal_code = $6,
+            relay_point_city = $7,
+            relay_point_country = $8,
+
+            relay_point_latitude = $9,
+            relay_point_longitude = $10,
+
+            relay_point_selected_at = now(),
+            updated_at = now()
+
+        WHERE order_id = $11
+          AND shipping_method = 'mondial_relay'
+          AND relay_selection_status = 'pending'
+          AND status NOT IN (
+              'label_created',
+              'shipped',
+              'delivered'
+          )
+
+        RETURNING
+            order_id,
+            relay_selection_status,
+            relay_point_id,
+            relay_point_name,
+            relay_point_address_line1,
+            relay_point_address_line2,
+            relay_point_postal_code,
+            relay_point_city,
+            relay_point_country,
+            relay_point_latitude,
+            relay_point_longitude,
+            relay_point_selected_at
+        `,
+            [
+                input.id,
+                input.name,
+                legacyAddress,
+                input.addressLine1,
+                input.addressLine2 ?? null,
+                input.postalCode,
+                input.city,
+                input.country.toUpperCase(),
+                input.latitude ?? null,
+                input.longitude ?? null,
+                orderId,
+            ]
+        );
+
+        return result.rows[0] ?? null;
+    }
 
     //#region Private methods for request handling
     private async insertOrder(client: PoolClient, input: CreateOrderRepositoryInput): Promise<{ id: number }> {

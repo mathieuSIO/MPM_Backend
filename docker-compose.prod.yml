@@ -9,6 +9,11 @@ services:
       - .env.production
     expose:
       - "4000"
+    logging:
+      driver: json-file
+      options:
+        max-size: "10m"
+        max-file: "5"
     volumes:
       - uploads_data:/app/uploads
     depends_on:

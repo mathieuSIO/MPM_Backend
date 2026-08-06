@@ -18,6 +18,7 @@ import adminPromoCodeRouter from "./routes/admin-promo-code.router.js";
 import promoCodeRouter from "./routes/promo-code.router.js";
 import shopProductRouter from "./routes/shop-product.router.js";
 import adminShopProductRouter from "./routes/admin-shop-product.router.js";
+import relayPointRouter from "./routes/relay-point.router.js";
 
 const uploadsDirectory = path.resolve(process.cwd(), "uploads");
 
@@ -45,6 +46,7 @@ app.use("/api/promo-codes", promoCodeRouter);
 app.use("/api/admin/promo-codes", adminPromoCodeRouter);
 app.use("/api/shop/products", shopProductRouter);
 app.use("/api/admin/shop/products", adminShopProductRouter);
+app.use("/api/orders", relayPointRouter);
 app.use("/uploads", express.static(uploadsDirectory));
 
 //Check if server life is good
