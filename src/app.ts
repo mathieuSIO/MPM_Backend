@@ -19,6 +19,7 @@ import promoCodeRouter from "./routes/promo-code.router.js";
 import shopProductRouter from "./routes/shop-product.router.js";
 import adminShopProductRouter from "./routes/admin-shop-product.router.js";
 import relayPointRouter from "./routes/relay-point.router.js";
+import debugMondialRelayRouter from "./routes/debug-mondial-relay.router.js";
 
 const uploadsDirectory = path.resolve(process.cwd(), "uploads");
 
@@ -48,6 +49,12 @@ app.use("/api/shop/products", shopProductRouter);
 app.use("/api/admin/shop/products", adminShopProductRouter);
 app.use("/api/orders", relayPointRouter);
 app.use("/uploads", express.static(uploadsDirectory));
+
+//toremove this route in production, it's only for testing the integration with Mondial Relay
+app.use(
+    "/api/debug/mondial-relay",
+    debugMondialRelayRouter
+);
 
 //Check if server life is good
 app.get("/api/health", (_req, res) => {

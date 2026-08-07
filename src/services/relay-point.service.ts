@@ -1,13 +1,14 @@
 import { BadRequestError, NotFoundError } from "../errors/http-errors.js";
 import { OrderRepository } from "../repositories/order.repository.js";
-import { MondialRelayService } from "./mondial-relay.service.js";
+import { MondialRelayClient } from "../integrations/mondial-relay/mondial-relay.client.js";
 
 import type { SelectRelayPointInput, SelectedRelayPointRow } from "../types/relay-point.types.js";
 
 export class RelayPointService {
     constructor(
         private readonly orderRepository = new OrderRepository(),
-        private readonly mondialRelayService = new MondialRelayService()
+        private readonly mondialRelayClient = new MondialRelayClient()
+
     ) { }
 
     async selectRelayPoint(
@@ -68,7 +69,7 @@ export class RelayPointService {
             );
         }
 
-        const officialRelayPoint = await this.mondialRelayService.validateRelayPoint({
+        const officialRelayPoint = await this.mondialRelayClient.validateRelayPoint({
             relayPointId: input.relayPoint.id,
             country: input.relayPoint.country,
         });
