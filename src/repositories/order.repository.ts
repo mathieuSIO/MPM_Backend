@@ -642,11 +642,12 @@ export class OrderRepository {
         return order;
     }
 
-    private async insertOrderShipment(
-        client: PoolClient,
-        orderId: number,
-        shipping: CreateOrderWithItemsInput["shipping"]
-    ): Promise<void> {
+    private async insertOrderShipment(client: PoolClient, orderId: number, shipping: CreateOrderWithItemsInput["shipping"]): Promise<void> {
+        const relaySelectionStatus =
+            shipping.method === "mondial_relay"
+                ? "pending"
+                : "not_required";
+
         await client.query(
             `
         INSERT INTO order_shipments (
@@ -656,9 +657,10 @@ export class OrderRepository {
             shipping_price_cents,
             total_weight_grams,
             carrier,
-            status
+            status,
+            relay_selection_status
         )
-        VALUES ($1, $2, $3, $4, $5, $6, 'pending')
+        VALUES ($1, $2, $3, $4, $5, $6, 'pending', $7)
         `,
             [
                 orderId,
@@ -667,6 +669,7 @@ export class OrderRepository {
                 shipping.priceCents,
                 shipping.totalWeightGrams,
                 shipping.method,
+                relaySelectionStatus,
             ]
         );
     }
