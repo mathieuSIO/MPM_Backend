@@ -163,15 +163,15 @@ export class MondialRelayClient {
         return response.text();
     }
 
-    private extractRelayPoint(
-        xml: string
-    ): MondialRelayPointRaw {
+    private extractRelayPoint(xml: string): MondialRelayPointRaw {
         const parsed = this.parser.parse(xml);
 
         const result =
             parsed?.Envelope?.Body
                 ?.WSI4_PointRelais_RechercheResponse
                 ?.WSI4_PointRelais_RechercheResult;
+
+        console.log("Mondial Relay parsed result:", JSON.stringify(result, null, 2));
 
         if (!result) {
             throw new BadRequestError(
