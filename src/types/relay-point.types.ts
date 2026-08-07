@@ -8,14 +8,7 @@ export type SelectRelayPointInput = {
 
     relayPoint: {
         id: string;
-        name: string;
-        addressLine1: string;
-        addressLine2?: string | null;
-        postalCode: string;
-        city: string;
         country: string;
-        latitude?: number | null;
-        longitude?: number | null;
     };
 };
 

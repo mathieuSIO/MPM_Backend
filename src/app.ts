@@ -50,11 +50,12 @@ app.use("/api/admin/shop/products", adminShopProductRouter);
 app.use("/api/orders", relayPointRouter);
 app.use("/uploads", express.static(uploadsDirectory));
 
-//toremove this route in production, it's only for testing the integration with Mondial Relay
-app.use(
-    "/api/debug/mondial-relay",
-    debugMondialRelayRouter
-);
+if (process.env.NODE_ENV !== "production") {
+    app.use(
+        "/api/debug/mondial-relay",
+        debugMondialRelayRouter
+    );
+}
 
 //Check if server life is good
 app.get("/api/health", (_req, res) => {

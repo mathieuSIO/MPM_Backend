@@ -1,7 +1,8 @@
 import type { PoolClient } from "pg";
 import { db } from "../db/connection.js";
 import type { CreateOrderRepositoryInput, CreateOrderRepositoryOutput, CreateOrderWithItemsInput, OrderDetailsRow, OrderItemDetailsRow, OrderMetaPurchaseItemRow, OrderMetaPurchaseRow, OrderSummaryRow, ProductReferenceWeightRow, ShopProductWeightRow, UpdateOrderShippingInput } from "../types/order.repository.types.js";
-import type { RelaySelectionContextRow, SelectedRelayPointRow, SelectRelayPointInput } from "../types/relay-point.types.js";
+import type { RelaySelectionContextRow, SelectedRelayPointRow } from "../types/relay-point.types.js";
+import type { MondialRelayPoint } from "../integrations/mondial-relay/mondial-relay.types.js";
 import type { OrderStatus } from "../types/order.types.js";
 
 export class OrderRepository {
@@ -500,10 +501,7 @@ export class OrderRepository {
         return result.rows[0] ?? null;
     }
 
-    async selectRelayPoint(
-        orderId: number,
-        input: SelectRelayPointInput["relayPoint"]
-    ): Promise<SelectedRelayPointRow | null> {
+    async selectRelayPoint(orderId: number, input: MondialRelayPoint): Promise<SelectedRelayPointRow | null> {
         const legacyAddress = [
             input.addressLine1,
             input.addressLine2,

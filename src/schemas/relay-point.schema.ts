@@ -20,42 +20,11 @@ export const selectRelayPointSchema = z.object({
             .min(1)
             .max(100),
 
-        name: z
-            .string()
-            .trim()
-            .min(1)
-            .max(255),
-
-        addressLine1: z
-            .string()
-            .trim()
-            .min(1)
-            .max(255),
-
-        addressLine2: z
-            .string()
-            .trim()
-            .max(255)
-            .nullable()
-            .optional(),
-
-        postalCode: z
-            .string()
-            .trim()
-            .min(1)
-            .max(20),
-
-        city: z
-            .string()
-            .trim()
-            .min(1)
-            .max(150),
-
         country: z
             .string()
             .trim()
-            .min(2)
-            .max(10),
+            .length(2)
+            .transform((value) => value.toUpperCase()),
 
         latitude: optionalNullableCoordinateSchema,
         longitude: optionalNullableCoordinateSchema,
