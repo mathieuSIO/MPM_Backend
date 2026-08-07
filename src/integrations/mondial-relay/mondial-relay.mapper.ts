@@ -1,21 +1,8 @@
 import { BadRequestError } from "../../errors/http-errors.js";
-
-import type {
-    MondialRelayPoint,
-    MondialRelayPointRaw,
-} from "./mondial-relay.types.js";
+import type { MondialRelayPoint, MondialRelayPointRaw, } from "./mondial-relay.types.js";
 
 export class MondialRelayMapper {
-    
     toRelayPoint(point: MondialRelayPointRaw): MondialRelayPoint {
-        const status = String(point.STAT ?? "");
-
-        if (status !== "0") {
-            throw new BadRequestError(
-                `Mondial Relay returned status ${status}`
-            );
-        }
-
         if (
             !point.Num ||
             !point.LgAdr1 ||
@@ -30,7 +17,7 @@ export class MondialRelayMapper {
         }
 
         return {
-            id: point.Num,
+            id: String(point.Num).padStart(6, "0"),
 
             name: [
                 point.LgAdr1,
@@ -48,7 +35,7 @@ export class MondialRelayMapper {
             addressLine2:
                 point.LgAdr4?.trim() || null,
 
-            postalCode: point.CP,
+            postalCode: String(point.CP),
 
             city: point.Ville,
 

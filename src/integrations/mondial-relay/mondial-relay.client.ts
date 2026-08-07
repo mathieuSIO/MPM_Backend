@@ -171,11 +171,17 @@ export class MondialRelayClient {
                 ?.WSI4_PointRelais_RechercheResponse
                 ?.WSI4_PointRelais_RechercheResult;
 
-        console.log("Mondial Relay parsed result:", JSON.stringify(result, null, 2));
-
         if (!result) {
             throw new BadRequestError(
                 "Invalid response from Mondial Relay"
+            );
+        }
+
+        const status = String(result.STAT ?? "");
+
+        if (status !== "0") {
+            throw new BadRequestError(
+                `Mondial Relay returned status ${status}`
             );
         }
 

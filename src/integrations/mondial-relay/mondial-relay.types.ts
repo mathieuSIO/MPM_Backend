@@ -15,14 +15,15 @@ export type MondialRelayPoint = {
 
 export type MondialRelayPointRaw = {
     STAT?: string | number;
-    Num?: string;
+
+    Num?: string | number;
 
     LgAdr1?: string;
     LgAdr2?: string;
     LgAdr3?: string;
     LgAdr4?: string;
 
-    CP?: string;
+    CP?: string | number;
     Ville?: string;
     Pays?: string;
 
