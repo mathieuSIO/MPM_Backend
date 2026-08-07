@@ -24,6 +24,14 @@ export type RelaySelectionContextRow = {
 
     relay_point_id: string | null;
     relay_point_name: string | null;
+
+    relay_point_address_line1: string | null;
+    relay_point_address_line2: string | null;
+    relay_point_postal_code: string | null;
+    relay_point_city: string | null;
+    relay_point_country: string | null;
+    relay_point_latitude: string | null;
+    relay_point_longitude: string | null;
 };
 
 export type SelectedRelayPointRow = {
@@ -43,4 +51,24 @@ export type SelectedRelayPointRow = {
     relay_point_longitude: string | null;
 
     relay_point_selected_at: Date;
+};
+
+export type RelaySelectionDetails = {
+    orderId: number;
+    orderStatus: string;
+    paymentStatus: string;
+    shippingMethod: string;
+    relaySelectionStatus: RelaySelectionStatus;
+
+    relayPoint: {
+        id: string;
+        name: string;
+        addressLine1: string;
+        addressLine2: string | null;
+        postalCode: string;
+        city: string;
+        country: string;
+        latitude: number | null;
+        longitude: number | null;
+    } | null;
 };

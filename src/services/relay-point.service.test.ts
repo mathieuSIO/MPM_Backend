@@ -36,6 +36,13 @@ describe("RelayPointService", () => {
 
         relay_point_id: null,
         relay_point_name: null,
+        relay_point_address_line1: null,
+        relay_point_address_line2: null,
+        relay_point_postal_code: null,
+        relay_point_city: null,
+        relay_point_country: null,
+        relay_point_latitude: null,
+        relay_point_longitude: null
     };
 
     const officialRelayPoint: MondialRelayPoint = {
@@ -234,5 +241,77 @@ describe("RelayPointService", () => {
         expect(
             orderRepository.selectRelayPoint
         ).not.toHaveBeenCalled();
+    });
+
+    it("returns pending relay selection for a paid Mondial Relay order", async () => {
+        orderRepository
+            .findRelaySelectionContextByCheckoutSessionId
+            .mockResolvedValue({
+                ...relaySelectionContext,
+                relay_selection_status: "pending",
+                relay_point_address_line1: null,
+                relay_point_address_line2: null,
+                relay_point_postal_code: null,
+                relay_point_city: null,
+                relay_point_country: null,
+                relay_point_latitude: null,
+                relay_point_longitude: null,
+            });
+
+        const result =
+            await service.getRelaySelection(
+                "cs_test_pending"
+            );
+
+        expect(result).toEqual({
+            orderId: 42,
+            orderStatus: "paid",
+            paymentStatus: "paid",
+            shippingMethod: "mondial_relay",
+            relaySelectionStatus: "pending",
+            relayPoint: null,
+        });
+    });
+
+    it("returns the selected relay point", async () => {
+        orderRepository
+            .findRelaySelectionContextByCheckoutSessionId
+            .mockResolvedValue({
+                ...relaySelectionContext,
+                relay_selection_status: "selected",
+                relay_point_id: "033594",
+                relay_point_name:
+                    "LOCKER 24/7 LE FOURNIL DE MATEF",
+                relay_point_address_line1:
+                    "171 ROUTE DE LAUNAGUET",
+                relay_point_address_line2: null,
+                relay_point_postal_code: "31200",
+                relay_point_city: "TOULOUSE",
+                relay_point_country: "FR",
+                relay_point_latitude: "43.6407966",
+                relay_point_longitude: "1.439154",
+            });
+
+        const result =
+            await service.getRelaySelection(
+                "cs_test_selected"
+            );
+
+        expect(result.relaySelectionStatus).toBe(
+            "selected"
+        );
+
+        expect(result.relayPoint).toEqual({
+            id: "033594",
+            name: "LOCKER 24/7 LE FOURNIL DE MATEF",
+            addressLine1:
+                "171 ROUTE DE LAUNAGUET",
+            addressLine2: null,
+            postalCode: "31200",
+            city: "TOULOUSE",
+            country: "FR",
+            latitude: 43.6407966,
+            longitude: 1.439154,
+        });
     });
 });

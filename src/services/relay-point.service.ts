@@ -2,13 +2,12 @@ import { BadRequestError, NotFoundError } from "../errors/http-errors.js";
 import { OrderRepository } from "../repositories/order.repository.js";
 import { MondialRelayClient } from "../integrations/mondial-relay/mondial-relay.client.js";
 
-import type { SelectRelayPointInput, SelectedRelayPointRow } from "../types/relay-point.types.js";
+import type { RelaySelectionDetails, SelectRelayPointInput, SelectedRelayPointRow } from "../types/relay-point.types.js";
 
 export class RelayPointService {
     constructor(
         private readonly orderRepository = new OrderRepository(),
         private readonly mondialRelayClient = new MondialRelayClient()
-
     ) { }
 
     async selectRelayPoint(
@@ -86,5 +85,59 @@ export class RelayPointService {
         }
 
         return selectedRelayPoint;
+    }
+
+    async getRelaySelection(
+        checkoutSessionId: string
+    ): Promise<RelaySelectionDetails> {
+        const context =
+            await this.orderRepository
+                .findRelaySelectionContextByCheckoutSessionId(
+                    checkoutSessionId
+                );
+
+        if (!context) {
+            throw new NotFoundError(
+                "Order not found for checkout session"
+            );
+        }
+
+        const relayPoint =
+            context.relay_selection_status === "selected" &&
+                context.relay_point_id &&
+                context.relay_point_name
+                ? {
+                    id: context.relay_point_id,
+                    name: context.relay_point_name,
+                    addressLine1:
+                        context.relay_point_address_line1 ?? "",
+                    addressLine2:
+                        context.relay_point_address_line2,
+                    postalCode:
+                        context.relay_point_postal_code ?? "",
+                    city:
+                        context.relay_point_city ?? "",
+                    country:
+                        context.relay_point_country ?? "",
+                    latitude:
+                        context.relay_point_latitude !== null
+                            ? Number(context.relay_point_latitude)
+                            : null,
+                    longitude:
+                        context.relay_point_longitude !== null
+                            ? Number(context.relay_point_longitude)
+                            : null,
+                }
+                : null;
+
+        return {
+            orderId: context.order_id,
+            orderStatus: context.order_status,
+            paymentStatus: context.payment_status,
+            shippingMethod: context.shipping_method,
+            relaySelectionStatus:
+                context.relay_selection_status,
+            relayPoint,
+        };
     }
 }

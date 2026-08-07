@@ -483,6 +483,14 @@ export class OrderRepository {
             os.relay_point_id,
             os.relay_point_name
 
+            os.relay_point_address_line1,
+            os.relay_point_address_line2,
+            os.relay_point_postal_code,
+            os.relay_point_city,
+            os.relay_point_country,
+            os.relay_point_latitude,
+            os.relay_point_longitude
+
         FROM payments p
 
         INNER JOIN orders o
