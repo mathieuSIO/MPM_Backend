@@ -481,7 +481,7 @@ export class OrderRepository {
             os.status AS shipment_status,
             os.relay_selection_status,
             os.relay_point_id,
-            os.relay_point_name
+            os.relay_point_name,
 
             os.relay_point_address_line1,
             os.relay_point_address_line2,
