@@ -16,6 +16,11 @@ export const relayPointRateLimiter = rateLimit({
     legacyHeaders: false,
 });
 
+router.get(
+    "/relay-selection",
+    asyncHandler(controller.getRelaySelection)
+);
+
 router.patch(
     "/relay-point",
     relayPointRateLimiter,
