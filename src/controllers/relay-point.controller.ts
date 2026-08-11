@@ -1,7 +1,4 @@
-import type {
-    Request,
-    Response,
-} from "express";
+import type { Request, Response, } from "express";
 
 import { RelayPointService } from "../services/relay-point.service.js";
 import { BadRequestError } from "../errors/http-errors.js";
@@ -12,10 +9,7 @@ export class RelayPointController {
             new RelayPointService()
     ) { }
 
-    selectRelayPoint = async (
-        req: Request,
-        res: Response
-    ): Promise<void> => {
+    selectRelayPoint = async (req: Request, res: Response): Promise<void> => {
         const relayPoint =
             await this.relayPointService.selectRelayPoint(
                 req.body
@@ -29,10 +23,7 @@ export class RelayPointController {
         });
     };
 
-    getRelaySelection = async (
-        req: Request,
-        res: Response
-    ): Promise<void> => {
+    getRelaySelection = async (req: Request, res: Response): Promise<void> => {
         const checkoutSessionId =
             req.query.checkoutSessionId;
 

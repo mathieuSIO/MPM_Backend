@@ -11,11 +11,14 @@ import { validateBody } from "../middleware/validate-body.middleware.js";
 const meRouter = Router();
 const orderController = new OrderController();
 const meController = new MeController();
+meRouter.use(requireAuth);
 
-meRouter.get("/", requireAuth, asyncHandler(meController.getMe));
-meRouter.patch("/", requireAuth, validateBody(updateMeSchema), asyncHandler(meController.updateMe));
-meRouter.patch("/password", requireAuth, validateBody(changeMePasswordSchema), asyncHandler(meController.changePassword));
-meRouter.get("/orders", requireAuth, asyncHandler(orderController.getMyOrders));
-meRouter.get("/orders/:orderId", requireAuth, asyncHandler(orderController.getMyOrderDetails));
+meRouter.get("/", asyncHandler(meController.getMe));
+meRouter.patch("/", validateBody(updateMeSchema), asyncHandler(meController.updateMe));
+meRouter.patch("/password", validateBody(changeMePasswordSchema), asyncHandler(meController.changePassword));
+meRouter.get("/orders", asyncHandler(orderController.getMyOrders));
+meRouter.get("/orders/:orderId", asyncHandler(orderController.getMyOrderDetails));
+meRouter.get("/orders/:orderId/relay-selection", asyncHandler(meController.getRelaySelectionForOrder));
+meRouter.patch("/orders/:orderId/relay-point", asyncHandler(meController.selectRelayPointForOrder));
 
 export default meRouter;

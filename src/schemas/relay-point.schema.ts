@@ -30,3 +30,26 @@ export const selectRelayPointSchema = z.object({
         longitude: optionalNullableCoordinateSchema,
     }),
 });
+
+export const orderRelayPointParamsSchema = z.object({
+    orderId: z.coerce
+        .number()
+        .int()
+        .positive(),
+});
+
+export const selectRelayPointForUserSchema = z.object({
+    relayPoint: z.object({
+        id: z
+            .string()
+            .trim()
+            .min(1)
+            .max(100),
+
+        country: z
+            .string()
+            .trim()
+            .length(2)
+            .transform((value) => value.toUpperCase()),
+    }),
+});

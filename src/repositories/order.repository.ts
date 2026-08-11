@@ -100,8 +100,12 @@ export class OrderRepository {
                     professional_logo_review_price_cents,
                     promo_code_id,
                     promo_code,
-                    discount_cents
+                    discount_cents,
+                    os.shipping_method,
+                    os.relay_selection_status
                 FROM orders 
+                LEFT JOIN order_shipments os
+                    ON os.order_id = o.id
                 WHERE user_id = $1
                 AND status IN ('paid', 'processing', 'shipped', 'completed', 'cancelled')
                 ORDER BY created_at DESC
@@ -144,6 +148,7 @@ export class OrderRepository {
                 o.promo_code,
                 o.discount_cents,
                 os.shipping_method,
+                os.relay_selection_status,
                 os.shipping_label,
                 os.shipping_price_cents,
                 os.total_weight_grams,
@@ -581,6 +586,51 @@ export class OrderRepository {
                 input.longitude ?? null,
                 orderId,
             ]
+        );
+
+        return result.rows[0] ?? null;
+    }
+
+    async findRelaySelectionContextByUserAndOrderId(
+        userId: number,
+        orderId: number
+    ): Promise<RelaySelectionContextRow | null> {
+        const result = await db.query(
+            `
+        SELECT
+            o.id AS order_id,
+            o.status AS order_status,
+
+            p.status AS payment_status,
+
+            os.shipping_method,
+            os.status AS shipment_status,
+            os.relay_selection_status,
+            os.relay_point_id,
+            os.relay_point_name,
+            os.relay_point_address_line1,
+            os.relay_point_address_line2,
+            os.relay_point_postal_code,
+            os.relay_point_city,
+            os.relay_point_country,
+            os.relay_point_latitude,
+            os.relay_point_longitude
+
+        FROM orders o
+
+        INNER JOIN payments p
+            ON p.order_id = o.id
+
+        INNER JOIN order_shipments os
+            ON os.order_id = o.id
+
+        WHERE
+            o.id = $1
+            AND o.user_id = $2
+
+        LIMIT 1
+        `,
+            [orderId, userId]
         );
 
         return result.rows[0] ?? null;

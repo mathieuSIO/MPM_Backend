@@ -87,6 +87,8 @@ export type OrderSummaryRow = {
   promo_code_id: number | null;
   promo_code: string | null;
   discount_cents: number;
+  shipping_method: string | null;
+  relay_selection_status: | "not_required" | "pending" | "selected" | null;
 };
 
 export type OrderItemDetailsRow = {
@@ -98,7 +100,7 @@ export type OrderItemDetailsRow = {
   total_price_cents: number;
   customization: OrderItemCustomization | null;
   final_preview_url: string | null;
-  
+
   variant_size_label: string | null;
   variant_color_name: string | null;
   variant_color_hex: string | null;
@@ -175,3 +177,4 @@ export type ShopProductWeightRow = {
   id: number;
   weight_grams: number;
 };
+

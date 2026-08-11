@@ -72,3 +72,8 @@ export type RelaySelectionDetails = {
         longitude: number | null;
     } | null;
 };
+
+export type RelayPointSelectionInput = {
+    id: string;
+    country: string;
+};

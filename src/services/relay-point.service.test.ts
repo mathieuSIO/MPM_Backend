@@ -17,6 +17,7 @@ describe("RelayPointService", () => {
     let orderRepository: {
         findRelaySelectionContextByCheckoutSessionId: ReturnType<typeof vi.fn>;
         selectRelayPoint: ReturnType<typeof vi.fn>;
+        findRelaySelectionContextByUserAndOrderId: ReturnType<typeof vi.fn>;
     };
 
     let mondialRelayClient: {
@@ -82,6 +83,7 @@ describe("RelayPointService", () => {
         orderRepository = {
             findRelaySelectionContextByCheckoutSessionId: vi.fn(),
             selectRelayPoint: vi.fn(),
+            findRelaySelectionContextByUserAndOrderId: vi.fn(),
         };
 
         mondialRelayClient = {
@@ -314,4 +316,117 @@ describe("RelayPointService", () => {
             longitude: 1.439154,
         });
     });
+
+    it("returns relay selection details for the authenticated order owner", async () => {
+        orderRepository
+            .findRelaySelectionContextByUserAndOrderId
+            .mockResolvedValue({
+                ...relaySelectionContext,
+                relay_selection_status: "pending",
+                relay_point_address_line1: null,
+                relay_point_address_line2: null,
+                relay_point_postal_code: null,
+                relay_point_city: null,
+                relay_point_country: null,
+                relay_point_latitude: null,
+                relay_point_longitude: null,
+            });
+
+        const result =
+            await service.getRelaySelectionForUser(
+                10,
+                42
+            );
+
+        expect(
+            orderRepository
+                .findRelaySelectionContextByUserAndOrderId
+        ).toHaveBeenCalledWith(
+            10,
+            42
+        );
+
+        expect(result).toMatchObject({
+            orderId: 42,
+            relaySelectionStatus: "pending",
+            relayPoint: null,
+        });
+    });
+
+    it("validates and stores the official relay point for the authenticated order owner", async () => {
+        orderRepository
+            .findRelaySelectionContextByUserAndOrderId
+            .mockResolvedValue(relaySelectionContext);
+
+        mondialRelayClient
+            .validateRelayPoint
+            .mockResolvedValue(
+                officialRelayPoint
+            );
+
+        orderRepository
+            .selectRelayPoint
+            .mockResolvedValue(
+                selectedRelayPointRow
+            );
+
+        await service.selectRelayPointForUser(
+            10,
+            42,
+            {
+                id: "033594",
+                country: "FR",
+            }
+        );
+
+        expect(
+            orderRepository
+                .findRelaySelectionContextByUserAndOrderId
+        ).toHaveBeenCalledWith(
+            10,
+            42
+        );
+
+        expect(
+            mondialRelayClient.validateRelayPoint
+        ).toHaveBeenCalledWith({
+            relayPointId: "033594",
+            country: "FR",
+        });
+
+        expect(
+            orderRepository.selectRelayPoint
+        ).toHaveBeenCalledWith(
+            42,
+            officialRelayPoint
+        );
+    });
+
+    it("does not expose or modify an order not owned by the authenticated user", async () => {
+        orderRepository
+            .findRelaySelectionContextByUserAndOrderId
+            .mockResolvedValue(null);
+
+        await expect(
+            service.selectRelayPointForUser(
+                999,
+                42,
+                {
+                    id: "033594",
+                    country: "FR",
+                }
+            )
+        ).rejects.toThrow(
+            "Order not found"
+        );
+
+        expect(
+            mondialRelayClient.validateRelayPoint
+        ).not.toHaveBeenCalled();
+
+        expect(
+            orderRepository.selectRelayPoint
+        ).not.toHaveBeenCalled();
+    });
+
 });
