@@ -85,25 +85,25 @@ export class OrderRepository {
         try {
             const result = await client.query<OrderSummaryRow>(
                 `SELECT
-                    id,
-                    status,
-                    total_price_cents,
-                    customer_first_name,
-                    customer_last_name,
-                    customer_email,
-                    created_at,
-                    production_option,
-                    production_label,
-                    production_percentage,
-                    production_price_cents,
-                    professional_logo_review_enabled,
-                    professional_logo_review_price_cents,
-                    promo_code_id,
-                    promo_code,
-                    discount_cents,
+                    o.id,
+                    o.status,
+                    o.total_price_cents,
+                    o.customer_first_name,
+                    o.customer_last_name,
+                    o.customer_email,
+                    o.created_at,
+                    o.production_option,
+                    o.production_label,
+                    o.production_percentage,
+                    o.production_price_cents,
+                    o.professional_logo_review_enabled,
+                    o.professional_logo_review_price_cents,
+                    o.promo_code_id,
+                    o.promo_code,
+                    o.discount_cents,
                     os.shipping_method,
                     os.relay_selection_status
-                FROM orders 
+                FROM orders o
                 LEFT JOIN order_shipments os
                     ON os.order_id = o.id
                 WHERE user_id = $1
