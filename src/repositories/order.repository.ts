@@ -107,7 +107,7 @@ export class OrderRepository {
                 LEFT JOIN order_shipments os
                     ON os.order_id = o.id
                 WHERE user_id = $1
-                AND status IN ('paid', 'processing', 'shipped', 'completed', 'cancelled')
+                AND o.status IN ('paid', 'processing', 'shipped', 'completed', 'cancelled')
                 ORDER BY created_at DESC
                 `,
                 [userId]
