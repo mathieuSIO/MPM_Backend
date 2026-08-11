@@ -108,7 +108,7 @@ export class OrderRepository {
                     ON os.order_id = o.id
                 WHERE user_id = $1
                 AND o.status IN ('paid', 'processing', 'shipped', 'completed', 'cancelled')
-                ORDER BY created_at DESC
+                ORDER BY o.created_at DESC
                 `,
                 [userId]
             );
