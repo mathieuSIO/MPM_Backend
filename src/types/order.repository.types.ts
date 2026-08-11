@@ -70,6 +70,8 @@ export type OrderItemCustomization = {
   }[];
 };
 
+export type RelaySelectionStatus =  | "not_required"  | "pending"  | "selected";
+
 export type OrderSummaryRow = {
   id: number;
   status: string;
@@ -87,8 +89,9 @@ export type OrderSummaryRow = {
   promo_code_id: number | null;
   promo_code: string | null;
   discount_cents: number;
+
   shipping_method: string | null;
-  relay_selection_status: | "not_required" | "pending" | "selected" | null;
+  relay_selection_status: RelaySelectionStatus | null;
 };
 
 export type OrderItemDetailsRow = {
@@ -127,6 +130,15 @@ export type OrderDetailsRow = OrderSummaryRow & {
   tracking_number: string | null;
   tracking_url: string | null;
   shipping_status: string | null;
+
+  relay_point_id: string | null;
+  relay_point_name: string | null;
+  relay_point_address_line1: string | null;
+  relay_point_address_line2: string | null;
+  relay_point_postal_code: string | null;
+  relay_point_city: string | null;
+  relay_point_country: string | null;
+  relay_point_selected_at: Date | null;
 };
 
 export type OrderMetaPurchaseItemRow = {

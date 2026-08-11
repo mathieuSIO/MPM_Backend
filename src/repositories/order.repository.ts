@@ -102,7 +102,15 @@ export class OrderRepository {
                     o.promo_code,
                     o.discount_cents,
                     os.shipping_method,
-                    os.relay_selection_status
+                    os.relay_selection_status,
+                    os.relay_point_id,
+                    os.relay_point_name,
+                    os.relay_point_address_line1,
+                    os.relay_point_address_line2,
+                    os.relay_point_postal_code,
+                    os.relay_point_city,
+                    os.relay_point_country,
+                    os.relay_point_selected_at
                 FROM orders o
                 LEFT JOIN order_shipments os
                     ON os.order_id = o.id
@@ -155,6 +163,14 @@ export class OrderRepository {
                 os.carrier,
                 os.tracking_number,
                 os.tracking_url,
+                os.relay_point_id,
+                os.relay_point_name,
+                os.relay_point_address_line1,
+                os.relay_point_address_line2,
+                os.relay_point_postal_code,
+                os.relay_point_city,
+                os.relay_point_country,
+                os.relay_point_selected_at,
                 os.status AS shipping_status
             FROM orders o
             LEFT JOIN order_shipments os
@@ -259,6 +275,15 @@ export class OrderRepository {
             o.promo_code,
             o.discount_cents,
             os.shipping_method,
+            os.relay_selection_status,
+            os.relay_point_id,
+            os.relay_point_name,
+            os.relay_point_address_line1,
+            os.relay_point_address_line2,
+            os.relay_point_postal_code,
+            os.relay_point_city,
+            os.relay_point_country,
+            os.relay_point_selected_at,
             os.shipping_label,
             os.shipping_price_cents,
             os.total_weight_grams,
