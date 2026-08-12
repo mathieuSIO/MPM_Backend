@@ -1,0 +1,2 @@
+ALTER TABLE order_shipments
+ADD COLUMN relay_reminder_sent_at TIMESTAMPTZ NULL;
