@@ -1,6 +1,6 @@
 import type { PoolClient } from "pg";
 import { db } from "../db/connection.js";
-import type { CreateOrderRepositoryInput, CreateOrderRepositoryOutput, CreateOrderWithItemsInput, OrderDetailsRow, OrderItemDetailsRow, OrderMetaPurchaseItemRow, OrderMetaPurchaseRow, OrderSummaryRow, ProductReferenceWeightRow, ShopProductWeightRow, UpdateOrderShippingInput } from "../types/order.repository.types.js";
+import type { CreateOrderRepositoryInput, CreateOrderRepositoryOutput, CreateOrderWithItemsInput, OrderDetailsRow, OrderItemDetailsRow, OrderMetaPurchaseItemRow, OrderMetaPurchaseRow, OrderSummaryRow, ProductReferenceWeightRow, RelayReminderCandidateRow, ShopProductWeightRow, UpdateOrderShippingInput } from "../types/order.repository.types.js";
 import type { RelaySelectionContextRow, SelectedRelayPointRow } from "../types/relay-point.types.js";
 import type { MondialRelayPoint } from "../integrations/mondial-relay/mondial-relay.types.js";
 import type { OrderStatus } from "../types/order.types.js";
@@ -656,6 +656,127 @@ export class OrderRepository {
         LIMIT 1
         `,
             [orderId, userId]
+        );
+
+        return result.rows[0] ?? null;
+    }
+
+    async findRelayReminderCandidates(paidBefore: Date, limit = 50): Promise<RelayReminderCandidateRow[]> {
+        const result = await db.query<RelayReminderCandidateRow>(
+            `
+        SELECT
+            o.id AS order_id,
+            o.user_id,
+            o.customer_email,
+            o.customer_first_name,
+            p.provider_checkout_session_id,
+            p.paid_at,
+            os.relay_reminder_sent_at
+        FROM orders o
+
+        INNER JOIN order_shipments os
+            ON os.order_id = o.id
+
+        INNER JOIN LATERAL (
+            SELECT
+                payments.provider_checkout_session_id,
+                payments.paid_at
+            FROM payments
+            WHERE payments.order_id = o.id
+              AND payments.status = 'paid'
+              AND payments.paid_at IS NOT NULL
+            ORDER BY payments.paid_at DESC
+            LIMIT 1
+        ) p ON TRUE
+
+        WHERE o.status IN ('paid', 'processing')
+
+          AND os.shipping_method = 'mondial_relay'
+
+          AND os.relay_selection_status = 'pending'
+
+          AND os.relay_reminder_sent_at IS NULL
+
+          AND o.customer_email IS NOT NULL
+          AND BTRIM(o.customer_email) <> ''
+
+          AND p.paid_at <= $1
+
+        ORDER BY p.paid_at ASC
+
+        LIMIT $2
+        `,
+            [paidBefore, limit]
+        );
+
+        return result.rows;
+    }
+
+    async markRelayReminderSent(orderId: number, sentAt: Date): Promise<boolean> {
+        const result = await db.query(
+            `
+        UPDATE order_shipments
+        SET relay_reminder_sent_at = $2
+        WHERE order_id = $1
+          AND shipping_method = 'mondial_relay'
+          AND relay_selection_status = 'pending'
+          AND relay_reminder_sent_at IS NULL
+        `,
+            [orderId, sentAt]
+        );
+
+        return (result.rowCount ?? 0) > 0;
+    }
+
+    async findRelayReminderCandidateByOrderId(
+        orderId: number,
+        paidBefore: Date
+    ): Promise<RelayReminderCandidateRow | null> {
+        const result = await db.query<RelayReminderCandidateRow>(
+            `
+        SELECT
+            o.id AS order_id,
+            o.user_id,
+            o.customer_email,
+            o.customer_first_name,
+            p.provider_checkout_session_id,
+            p.paid_at,
+            os.relay_reminder_sent_at
+        FROM orders o
+
+        INNER JOIN order_shipments os
+            ON os.order_id = o.id
+
+        INNER JOIN LATERAL (
+            SELECT
+                payments.provider_checkout_session_id,
+                payments.paid_at
+            FROM payments
+            WHERE payments.order_id = o.id
+              AND payments.status = 'paid'
+              AND payments.paid_at IS NOT NULL
+            ORDER BY payments.paid_at DESC
+            LIMIT 1
+        ) p ON TRUE
+
+        WHERE o.id = $1
+
+          AND o.status IN ('paid', 'processing')
+
+          AND os.shipping_method = 'mondial_relay'
+
+          AND os.relay_selection_status = 'pending'
+
+          AND os.relay_reminder_sent_at IS NULL
+
+          AND o.customer_email IS NOT NULL
+          AND BTRIM(o.customer_email) <> ''
+
+          AND p.paid_at <= $2
+
+        LIMIT 1
+        `,
+            [orderId, paidBefore]
         );
 
         return result.rows[0] ?? null;

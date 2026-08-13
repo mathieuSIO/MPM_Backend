@@ -55,4 +55,7 @@ export const env = {
   mondialRelayApiUrl: process.env.MONDIAL_RELAY_API_URL ? requiredUrlEnv("MONDIAL_RELAY_API_URL") : "https://api.mondialrelay.com/Web_Services.asmx",
   mondialRelayDefaultCountry: optionalEnv("MONDIAL_RELAY_DEFAULT_COUNTRY", "FR").toUpperCase(),
   mondialRelayDefaultAction: optionalEnv("MONDIAL_RELAY_DEFAULT_ACTION", "24R"),
+
+  //JOB reminder
+  relayReminderJobEnabled: optionalEnv("RELAY_REMINDER_JOB_ENABLED", "true") === "true",
 };

@@ -1,5 +1,5 @@
 import { emailConfig } from "../../config/email.js";
-import type { CustomRequestEmailInput, EmailVerificationEmailInput } from "../../types/email.types.js";
+import type { CustomRequestEmailInput, EmailVerificationEmailInput, RelayReminderEmailInput } from "../../types/email.types.js";
 
 import type { EmailProvider } from "./email-provider.interface.js";
 
@@ -288,6 +288,70 @@ export class EmailService {
                 `${input.verificationUrl}\n\n` +
                 `Ce lien expire dans 24 heures.\n`,
         });
+    }
+
+    async sendRelayReminderEmail(input: RelayReminderEmailInput): Promise<boolean> {
+        if (!emailConfig.enabled) {
+            return false;
+        }
+
+        await this.emailProvider.sendEmail({
+            to: input.customerEmail,
+
+            subject: "Choisissez votre Point Relais pour votre commande",
+
+            html: `
+            <h1>Votre commande attend votre Point Relais</h1>
+
+            <p>
+                Bonjour${input.customerFirstName
+                    ? ` ${input.customerFirstName}`
+                    : ""
+                },
+            </p>
+
+            <p>
+                Votre commande #${input.orderId} a bien été enregistrée.
+            </p>
+
+            <p>
+                Il ne vous reste plus qu'à sélectionner votre Point Relais
+                Mondial Relay afin que nous puissions préparer son expédition.
+            </p>
+
+            <p>
+                <a href="${input.relaySelectionUrl}">
+                    Choisir mon Point Relais
+                </a>
+            </p>
+
+            <p>
+                Si vous avez déjà sélectionné votre Point Relais entre-temps,
+                vous pouvez ignorer cet email.
+            </p>
+
+            <p>
+                Merci pour votre confiance.
+            </p>
+
+            <p>
+                Mon Petit Matos
+            </p>
+        `,
+
+            text:
+                `Bonjour${input.customerFirstName
+                    ? ` ${input.customerFirstName}`
+                    : ""
+                },\n\n` +
+                `Votre commande #${input.orderId} attend encore la sélection de votre Point Relais Mondial Relay.\n\n` +
+                `Choisissez votre Point Relais ici :\n` +
+                `${input.relaySelectionUrl}\n\n` +
+                `Si vous l'avez déjà sélectionné entre-temps, vous pouvez ignorer cet email.\n\n` +
+                `Mon Petit Matos`,
+        });
+
+        return true;
     }
 
     private formatPrice(amountCents: number): string {

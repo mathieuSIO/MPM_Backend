@@ -18,3 +18,10 @@ export type EmailVerificationEmailInput = {
   firstName: string | null;
   verificationUrl: string;
 };
+
+export type RelayReminderEmailInput = {
+    customerEmail: string;
+    customerFirstName: string | null;
+    orderId: number;
+    relaySelectionUrl: string;
+};

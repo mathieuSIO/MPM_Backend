@@ -70,7 +70,7 @@ export type OrderItemCustomization = {
   }[];
 };
 
-export type RelaySelectionStatus =  | "not_required"  | "pending"  | "selected";
+export type RelaySelectionStatus = | "not_required" | "pending" | "selected";
 
 export type OrderSummaryRow = {
   id: number;
@@ -190,3 +190,17 @@ export type ShopProductWeightRow = {
   weight_grams: number;
 };
 
+export type RelayReminderCandidateRow = {
+  order_id: number;
+
+  user_id: number | null;
+
+  customer_email: string;
+  customer_first_name: string | null;
+
+  provider_checkout_session_id: string | null;
+
+  paid_at: Date;
+
+  relay_reminder_sent_at: Date | null;
+};
