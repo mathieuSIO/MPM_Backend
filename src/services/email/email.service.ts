@@ -1,5 +1,5 @@
 import { emailConfig } from "../../config/email.js";
-import type { CustomRequestEmailInput, EmailVerificationEmailInput, RelayReminderEmailInput } from "../../types/email.types.js";
+import type { CustomRequestEmailInput, EmailVerificationEmailInput, OrderCancelledCustomerEmailInput, OrderProcessingCustomerEmailInput, OrderShippedCustomerEmailInput, RelayReminderEmailInput } from "../../types/email.types.js";
 
 import type { EmailProvider } from "./email-provider.interface.js";
 
@@ -19,8 +19,7 @@ type AccountCreatedEmailInput = {
 
 export class EmailService {
     constructor(
-        private readonly emailProvider: EmailProvider =
-            new SmtpEmailProvider()
+        private readonly emailProvider: EmailProvider = new SmtpEmailProvider()
     ) { }
 
     async sendAccountCreatedEmail(
@@ -359,5 +358,190 @@ export class EmailService {
             style: "currency",
             currency: "EUR",
         }).format(amountCents / 100);
+    }
+
+    async sendOrderProcessingCustomerEmail(input: OrderProcessingCustomerEmailInput): Promise<void> {
+        if (!emailConfig.enabled) {
+            return;
+        }
+
+        await this.emailProvider.sendEmail({
+            to: input.customerEmail,
+            subject: `Votre commande #${input.orderId} est en préparation`,
+            html: `
+            <h1>Votre commande est en préparation</h1>
+
+            <p>
+                Bonjour${input.customerFirstName
+                    ? ` ${input.customerFirstName}`
+                    : ""
+                },
+            </p>
+
+            <p>
+                Bonne nouvelle, votre commande #${input.orderId}
+                est maintenant en préparation.
+            </p>
+
+            <p>
+                Nous vous tiendrons informé dès qu'elle sera expédiée.
+            </p>
+
+            <p>
+                Merci pour votre confiance.
+            </p>
+
+            <p>
+                Mon Petit Matos
+            </p>
+        `,
+            text:
+                `Bonjour${input.customerFirstName
+                    ? ` ${input.customerFirstName}`
+                    : ""
+                },\n\n` +
+                `Votre commande #${input.orderId} est maintenant en préparation.\n` +
+                `Nous vous tiendrons informé dès qu'elle sera expédiée.\n\n` +
+                `Merci pour votre confiance.\n` +
+                `Mon Petit Matos`,
+        });
+    }
+
+    async sendOrderShippedCustomerEmail(input: OrderShippedCustomerEmailInput): Promise<void> {
+        if (!emailConfig.enabled) {
+            return;
+        }
+
+        const carrierHtml = input.carrier
+            ? `
+            <p>
+                <strong>Transporteur :</strong> ${input.carrier}
+            </p>
+        `
+            : "";
+
+        const trackingNumberHtml = input.trackingNumber
+            ? `
+            <p>
+                <strong>Numéro de suivi :</strong>
+                ${input.trackingNumber}
+            </p>
+        `
+            : "";
+
+        const trackingLinkHtml = input.trackingUrl
+            ? `
+            <p>
+                <a href="${input.trackingUrl}">
+                    Suivre mon colis
+                </a>
+            </p>
+        `
+            : "";
+
+        const carrierText = input.carrier
+            ? `Transporteur : ${input.carrier}\n`
+            : "";
+
+        const trackingNumberText = input.trackingNumber
+            ? `Numéro de suivi : ${input.trackingNumber}\n`
+            : "";
+
+        const trackingUrlText = input.trackingUrl
+            ? `Suivre votre colis : ${input.trackingUrl}\n`
+            : "";
+
+        await this.emailProvider.sendEmail({
+            to: input.customerEmail,
+            subject: `Votre commande #${input.orderId} a été expédiée`,
+            html: `
+            <h1>Votre commande a été expédiée</h1>
+
+            <p>
+                Bonjour${input.customerFirstName
+                    ? ` ${input.customerFirstName}`
+                    : ""
+                },
+            </p>
+
+            <p>
+                Votre commande #${input.orderId} a été expédiée.
+            </p>
+
+            ${carrierHtml}
+            ${trackingNumberHtml}
+            ${trackingLinkHtml}
+
+            <p>
+                Votre colis est désormais en route.
+            </p>
+
+            <p>
+                Merci pour votre confiance.
+            </p>
+
+            <p>
+                Mon Petit Matos
+            </p>
+        `,
+            text:
+                `Bonjour${input.customerFirstName
+                    ? ` ${input.customerFirstName}`
+                    : ""
+                },\n\n` +
+                `Votre commande #${input.orderId} a été expédiée.\n\n` +
+                carrierText +
+                trackingNumberText +
+                trackingUrlText +
+                `\nVotre colis est désormais en route.\n\n` +
+                `Merci pour votre confiance.\n` +
+                `Mon Petit Matos`,
+        });
+    }
+
+    async sendOrderCancelledCustomerEmail(input: OrderCancelledCustomerEmailInput): Promise<void> {
+        if (!emailConfig.enabled) {
+            return;
+        }
+
+        await this.emailProvider.sendEmail({
+            to: input.customerEmail,
+
+            subject: `Votre commande #${input.orderId} a été annulée`,
+
+            html: `
+            <h1>Votre commande a été annulée</h1>
+
+            <p>
+                Bonjour${input.customerFirstName
+                    ? ` ${input.customerFirstName}`
+                    : ""
+                },
+            </p>
+
+            <p>
+                Nous vous informons que votre commande
+                #${input.orderId} a été annulée.
+            </p>
+
+            <p>
+                Si vous avez une question concernant cette annulation,
+                n'hésitez pas à nous contacter.
+            </p>
+
+            <p>
+                Mon Petit Matos
+            </p>
+        `,
+            text:
+                `Bonjour${input.customerFirstName
+                    ? ` ${input.customerFirstName}`
+                    : ""
+                },\n\n` +
+                `Votre commande #${input.orderId} a été annulée.\n\n` +
+                `Si vous avez une question concernant cette annulation, ` +
+                `n'hésitez pas à nous contacter.\n\n` +
+                `Mon Petit Matos`,
+        });
     }
 }

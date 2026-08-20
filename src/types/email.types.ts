@@ -20,8 +20,29 @@ export type EmailVerificationEmailInput = {
 };
 
 export type RelayReminderEmailInput = {
-    customerEmail: string;
-    customerFirstName: string | null;
-    orderId: number;
-    relaySelectionUrl: string;
+  customerEmail: string;
+  customerFirstName: string | null;
+  orderId: number;
+  relaySelectionUrl: string;
+};
+
+export type OrderProcessingCustomerEmailInput = {
+  customerEmail: string;
+  customerFirstName: string | null;
+  orderId: number;
+};
+
+export type OrderShippedCustomerEmailInput = {
+  customerEmail: string;
+  customerFirstName: string | null;
+  orderId: number;
+  carrier: string | null;
+  trackingNumber: string | null;
+  trackingUrl: string | null;
+};
+
+export type OrderCancelledCustomerEmailInput = {
+  customerEmail: string;
+  customerFirstName: string | null;
+  orderId: number;
 };

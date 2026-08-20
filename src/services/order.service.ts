@@ -10,12 +10,14 @@ import { OrderRepository } from "../repositories/order.repository.js";
 import type { CreateOrderRepositoryOutput, OrderDetailsRow, OrderSummaryRow, UpdateOrderShippingInput } from "../types/order.repository.types.js";
 import type { CreateOrderWithItemsServiceInput } from "../types/order.service.types.js";
 import type { OrderStatus } from "../types/order.types.js";
+import { EmailService } from "./email/email.service.js";
 import { PromoCodeService } from "./promo-code.service.js";
 
 export class OrderService {
     constructor(
         private readonly orderRepository = new OrderRepository(),
-        private readonly promoCodeService = new PromoCodeService()
+        private readonly promoCodeService = new PromoCodeService(),
+        private readonly emailService = new EmailService(),
     ) { }
 
     async getUserOrders(userId: number): Promise<OrderSummaryRow[]> {
@@ -198,12 +200,36 @@ export class OrderService {
             throw new NotFoundError("Order not found");
         }
 
+        if (existingOrder.status === status) {
+            return existingOrder;
+        }
+
         await this.orderRepository.updateOrderStatus(orderId, status);
 
         const updatedOrder = await this.orderRepository.findAdminOrderDetailsById(orderId);
 
         if (!updatedOrder) {
             throw new NotFoundError("Order not found after update");
+        }
+
+        try {
+            if (status === "processing") {
+                await this.emailService.sendOrderProcessingCustomerEmail({
+                    customerEmail: updatedOrder.customer_email,
+                    customerFirstName: updatedOrder.customer_first_name,
+                    orderId: updatedOrder.id,
+                });
+            }
+
+            if (status === "cancelled") {
+                await this.emailService.sendOrderCancelledCustomerEmail({
+                    customerEmail: updatedOrder.customer_email,
+                    customerFirstName: updatedOrder.customer_first_name,
+                    orderId: updatedOrder.id,
+                });
+            }
+        } catch (error) {
+            console.error(`Failed to send order status email for order ${orderId}`, error);
         }
 
         return updatedOrder;
@@ -284,6 +310,26 @@ export class OrderService {
 
         if (!updatedOrder) {
             throw new NotFoundError("Order not found after shipping update");
+        }
+
+        const hasJustBeenShipped = existingOrder.shipping_status !== "shipped" && updatedOrder.shipping_status === "shipped";
+
+        if (hasJustBeenShipped) {
+            try {
+                await this.emailService.sendOrderShippedCustomerEmail({
+                    customerEmail: updatedOrder.customer_email,
+                    customerFirstName: updatedOrder.customer_first_name,
+                    orderId: updatedOrder.id,
+                    carrier: updatedOrder.carrier,
+                    trackingNumber: updatedOrder.tracking_number,
+                    trackingUrl: updatedOrder.tracking_url,
+                });
+            } catch (error) {
+                console.error(
+                    `Failed to send shipped email for order ${orderId}`,
+                    error
+                );
+            }
         }
 
         return updatedOrder;
