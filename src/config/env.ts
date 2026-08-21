@@ -1,61 +1,60 @@
 import type { SignOptions } from "jsonwebtoken";
+import { envSchema } from "../schemas/env.schema.js";
+import { z } from "zod";
 
-type JwtExpiresIn = NonNullable<SignOptions["expiresIn"]>;
+type JwtExpiresIn =
+  NonNullable<SignOptions["expiresIn"]>;
 
-const requiredEnv = (key: string): string => {
-  const value = process.env[key]?.trim();
+const parsedEnv = envSchema.safeParse(process.env);
 
-  if (!value) {
-    throw new Error(`${key} is required`);
-  }
+if (!parsedEnv.success) {
+  console.error(`Invalid environment variables:\n${z.prettifyError(parsedEnv.error)}`,);
 
-  return value;
-};
+  throw new Error(
+    "Invalid environment configuration"
+  );
+}
 
-const optionalEnv = (key: string, defaultValue: string): string => {
-  const value = process.env[key]?.trim();
-
-  return value && value.length > 0
-    ? value
-    : defaultValue;
-};
-
-const requiredUrlEnv = (key: string): string => {
-  const value = requiredEnv(key);
-
-  try {
-    return new URL(value).toString();
-  } catch {
-    throw new Error(`${key} is missing or must be a valid URL`);
-  }
-};
+const values = parsedEnv.data;
 
 export const env = {
-  port: Number(process.env.PORT) || 4000,
-  databaseUrl: requiredEnv("DATABASE_URL"),
+  port: values.PORT,
 
-  jwtSecret: requiredEnv("JWT_SECRET"),
-  jwtExpiresIn: optionalEnv("JWT_EXPIRES_IN", "7d") as JwtExpiresIn,
+  databaseUrl: values.DATABASE_URL,
 
-  frontendOrigin: optionalEnv("FRONTEND_ORIGIN", "http://localhost:5173"),
-  apiPublicUrl: optionalEnv("API_PUBLIC_URL", "http://localhost:4000"),
+  jwtSecret: values.JWT_SECRET,
+  jwtExpiresIn:
+    values.JWT_EXPIRES_IN as JwtExpiresIn,
 
-  stripeSecretKey: requiredEnv("STRIPE_SECRET_KEY"),
-  stripeWebhookSecret: requiredEnv("STRIPE_WEBHOOK_SECRET"),
+  frontendOrigin: values.FRONTEND_ORIGIN,
+  apiPublicUrl: values.API_PUBLIC_URL,
 
-  //META
-  metaPixelId: process.env.META_PIXEL_ID?.trim() ?? "",
-  metaAccessToken: process.env.META_ACCESS_TOKEN?.trim() ?? "",
-  metaTestEventCode: process.env.META_TEST_EVENT_CODE?.trim() ?? "",
-  turnstileSecretKey: process.env.TURNSTILE_SECRET_KEY?.trim() ?? "",
+  stripeSecretKey: values.STRIPE_SECRET_KEY,
+  stripeWebhookSecret:
+    values.STRIPE_WEBHOOK_SECRET,
 
-  //MONDIAL RELAY
-  mondialRelayEnseigne: requiredEnv("MONDIAL_RELAY_ENSEIGNE"),
-  mondialRelayPrivateKey: requiredEnv("MONDIAL_RELAY_PRIVATE_KEY"),
-  mondialRelayApiUrl: process.env.MONDIAL_RELAY_API_URL ? requiredUrlEnv("MONDIAL_RELAY_API_URL") : "https://api.mondialrelay.com/Web_Services.asmx",
-  mondialRelayDefaultCountry: optionalEnv("MONDIAL_RELAY_DEFAULT_COUNTRY", "FR").toUpperCase(),
-  mondialRelayDefaultAction: optionalEnv("MONDIAL_RELAY_DEFAULT_ACTION", "24R"),
+  metaPixelId: values.META_PIXEL_ID,
+  metaAccessToken: values.META_ACCESS_TOKEN,
+  metaTestEventCode: values.META_TEST_EVENT_CODE,
 
-  //JOB reminder
-  relayReminderJobEnabled: optionalEnv("RELAY_REMINDER_JOB_ENABLED", "true") === "true",
+  turnstileSecretKey:
+    values.TURNSTILE_SECRET_KEY,
+
+  mondialRelayEnseigne:
+    values.MONDIAL_RELAY_ENSEIGNE,
+
+  mondialRelayPrivateKey:
+    values.MONDIAL_RELAY_PRIVATE_KEY,
+
+  mondialRelayApiUrl:
+    values.MONDIAL_RELAY_API_URL,
+
+  mondialRelayDefaultCountry:
+    values.MONDIAL_RELAY_DEFAULT_COUNTRY,
+
+  mondialRelayDefaultAction:
+    values.MONDIAL_RELAY_DEFAULT_ACTION,
+
+  relayReminderJobEnabled:
+    values.RELAY_REMINDER_JOB_ENABLED,
 };
